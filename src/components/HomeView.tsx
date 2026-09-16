@@ -20,8 +20,8 @@ export function HomeView() {
         <div className="grid items-start gap-12 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
             <span className="pill pill-cyan mb-6">pump.fun · Solana · TikTok</span>
-            <h1 className="text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
-              Route token fees to <span className="text-cyan">TikTok</span> creators.
+            <h1 className="text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
+              Route token fees to <span className="bg-[#d9f99d] px-2">TikTok</span> creators.
             </h1>
             <p className="mt-6 max-w-xl text-lg text-muted">
               Launch a token, point its creator fees at any TikTok handle, and TikPad pays the creator out automatically. No account needed on

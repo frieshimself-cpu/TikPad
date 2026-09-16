@@ -2,18 +2,18 @@
 @import "@solana/wallet-adapter-react-ui/styles.css";
 
 :root {
-  --bg: #08080a;
-  --bg-elev: #0f0f12;
-  --bg-card: #121216;
-  --line: #1f1f26;
-  --line-strong: #2b2b34;
-  --fg: #f4f4f5;
-  --fg-muted: #9a9aa6;
-  --fg-dim: #62626e;
-  --cyan: #25f4ee;
-  --rose: #fe2c55;
-  --green: #35d07f;
-  --amber: #f5b342;
+  --bg: #f6f2ea;
+  --bg-elev: #efe9dd;
+  --bg-card: #fffdf8;
+  --line: #e2dccf;
+  --line-strong: #c9c1b0;
+  --fg: #141210;
+  --fg-muted: #5f594f;
+  --fg-dim: #948c7e;
+  --cyan: #6d28d9;
+  --rose: #ff3d00;
+  --green: #1f8a4c;
+  --amber: #b45309;
 }
 
 @theme inline {
@@ -29,12 +29,13 @@
   --color-rose: var(--rose);
   --color-green: var(--green);
   --color-amber: var(--amber);
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-face), ui-monospace, monospace;
+  --font-display: var(--font-display-face), var(--font-body), sans-serif;
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
@@ -44,9 +45,14 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+h1, h2, h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
 ::selection {
-  background: var(--cyan);
-  color: #000;
+  background: #d9f99d;
+  color: #141210;
 }
 
 @layer components {
@@ -58,7 +64,8 @@ body {
 .card {
   background: var(--bg-card);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 6px;
+  box-shadow: 0 1px 0 rgb(20 18 16 / 0.04), 0 8px 24px -16px rgb(20 18 16 / 0.25);
 }
 
 .btn {
@@ -68,9 +75,11 @@ body {
   gap: 0.5rem;
   height: 44px;
   padding: 0 1.1rem;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 0.925rem;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
   transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.05s;
   white-space: nowrap;
 }
@@ -84,17 +93,21 @@ body {
 }
 .btn-primary {
   background: var(--fg);
-  color: #000;
+  color: #f6f2ea;
+  box-shadow: 3px 3px 0 var(--cyan);
 }
 .btn-primary:hover:not(:disabled) {
-  background: #fff;
+  background: #000;
+  box-shadow: 4px 4px 0 var(--cyan);
 }
 .btn-accent {
-  background: var(--rose);
-  color: #fff;
+  background: #d9f99d;
+  color: #141210;
+  border: 1px solid var(--fg);
+  box-shadow: 3px 3px 0 var(--fg);
 }
 .btn-accent:hover:not(:disabled) {
-  background: #ff4368;
+  background: #bef264;
 }
 .btn-ghost {
   background: transparent;
@@ -110,7 +123,7 @@ body {
   width: 100%;
   height: 44px;
   padding: 0 0.9rem;
-  border-radius: 12px;
+  border-radius: 6px;
   background: var(--bg-elev);
   border: 1px solid var(--line);
   color: var(--fg);
@@ -120,7 +133,7 @@ body {
 }
 .input:focus {
   border-color: var(--cyan);
-  box-shadow: 0 0 0 3px rgb(37 244 238 / 0.12);
+  box-shadow: 0 0 0 3px rgb(109 40 217 / 0.18);
 }
 .input::placeholder {
   color: var(--fg-dim);
@@ -133,8 +146,10 @@ textarea.input {
 
 .label {
   display: block;
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--fg-muted);
   margin-bottom: 0.4rem;
 }
@@ -145,60 +160,66 @@ textarea.input {
   gap: 0.35rem;
   height: 24px;
   padding: 0 0.6rem;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  border: 1px solid var(--line-strong);
-  color: var(--fg-muted);
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--fg);
+  color: var(--fg);
+  background: var(--bg-card);
 }
 .pill-cyan {
-  border-color: rgb(37 244 238 / 0.35);
-  color: var(--cyan);
-  background: rgb(37 244 238 / 0.06);
+  border-color: var(--cyan);
+  color: #fff;
+  background: var(--cyan);
 }
 .pill-rose {
-  border-color: rgb(254 44 85 / 0.4);
-  color: var(--rose);
-  background: rgb(254 44 85 / 0.08);
+  border-color: var(--rose);
+  color: #fff;
+  background: var(--rose);
 }
 .pill-green {
-  border-color: rgb(53 208 127 / 0.4);
-  color: var(--green);
-  background: rgb(53 208 127 / 0.08);
+  border-color: var(--green);
+  color: #fff;
+  background: var(--green);
 }
 .pill-amber {
-  border-color: rgb(245 179 66 / 0.4);
-  color: var(--amber);
-  background: rgb(245 179 66 / 0.08);
+  border-color: var(--fg);
+  color: var(--fg);
+  background: #d9f99d;
 }
 }
 
 /* Wallet adapter button restyle */
 .wallet-adapter-button {
   height: 40px !important;
-  border-radius: 12px !important;
+  border-radius: 6px !important;
   font-family: var(--font-sans) !important;
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-  background: var(--bg-elev) !important;
-  border: 1px solid var(--line-strong) !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  background: var(--bg-card) !important;
+  border: 1px solid var(--fg) !important;
   color: var(--fg) !important;
   padding: 0 0.9rem !important;
   line-height: 1 !important;
 }
 .wallet-adapter-button:hover {
-  background: var(--bg-card) !important;
-  border-color: var(--fg-dim) !important;
+  background: var(--bg-elev) !important;
 }
 .wallet-adapter-button-trigger {
-  background: var(--bg-elev) !important;
+  background: var(--bg-card) !important;
 }
 .wallet-adapter-modal-wrapper {
   background: var(--bg-card) !important;
-  border: 1px solid var(--line) !important;
-  border-radius: 16px !important;
+  border: 1px solid var(--fg) !important;
+  border-radius: 6px !important;
+  color: var(--fg) !important;
 }
+.wallet-adapter-modal-title { color: var(--fg) !important; }
+.wallet-adapter-modal-list .wallet-adapter-button { color: var(--fg) !important; }
 .wallet-adapter-modal-button-close {
   background: var(--bg-elev) !important;
 }
@@ -224,7 +245,7 @@ textarea.input {
   height: 8px;
   border-radius: 999px;
   background: var(--green);
-  box-shadow: 0 0 0 4px rgb(53 208 127 / 0.15);
+  box-shadow: 0 0 0 4px rgb(31 138 76 / 0.2);
   animation: pulse-dot 1.6s ease-in-out infinite;
 }
 
@@ -243,7 +264,9 @@ textarea.input {
 }
 
 .glow {
-  background:
-    radial-gradient(600px 300px at 20% 0%, rgb(37 244 238 / 0.10), transparent 60%),
-    radial-gradient(600px 300px at 80% 10%, rgb(254 44 85 / 0.10), transparent 60%);
+  background-image:
+    linear-gradient(rgb(20 18 16 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(20 18 16 / 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: center top;
 }

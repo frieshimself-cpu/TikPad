@@ -1,4 +1,4 @@
-const PALETTE = ["#25f4ee", "#fe2c55", "#35d07f", "#f5b342", "#8b7cf6", "#f472b6"];
+const PALETTE = ["#6d28d9", "#ff3d00", "#1f8a4c", "#b45309", "#0e7490", "#be185d"];
 
 export function Avatar({ handle, src, size = 36 }: { handle: string; src?: string | null; size?: number }) {
   if (src) {
@@ -10,7 +10,7 @@ export function Avatar({ handle, src, size = 36 }: { handle: string; src?: strin
   const color = PALETTE[h % PALETTE.length];
   return (
     <span
-      className="inline-flex shrink-0 items-center justify-center rounded-full font-semibold uppercase text-black"
+      className="inline-flex shrink-0 items-center justify-center rounded-full font-semibold uppercase text-white"
       style={{ width: size, height: size, background: color, fontSize: size * 0.4 }}
       aria-hidden
     >
