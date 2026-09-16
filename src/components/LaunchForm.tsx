@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { Buffer } from "buffer";
 import { PublicKey, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { fmtSol } from "@/lib/format";
 import { normalizeHandle } from "@/lib/tiktok";

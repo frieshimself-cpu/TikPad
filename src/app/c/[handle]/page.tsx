@@ -11,15 +11,13 @@ import { normalizeHandle, profileUrl } from "@/lib/tiktok";
 export const dynamic = "force-dynamic";
 
 export default async function CreatorPage({ params }: PageProps<"/c/[handle]">) {
-  ready();
+  await ready();
   const raw = (await params).handle;
   const handle = normalizeHandle(decodeURIComponent(raw));
   if (!handle) notFound();
-  const creator = getCreatorByHandle(handle);
-  const tokens = listTokensForHandle(handle);
+  const [creator, tokens] = await Promise.all([getCreatorByHandle(handle), listTokensForHandle(handle)]);
   if (!creator && tokens.length === 0) notFound();
-  const bal = balanceForHandle(handle);
-  const payouts = listPayoutsForHandle(handle, 20);
+  const [bal, payouts] = await Promise.all([balanceForHandle(handle), listPayoutsForHandle(handle, 20)]);
   const linked = !!creator?.payout_wallet;
 
   return (

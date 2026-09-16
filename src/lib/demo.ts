@@ -2,9 +2,10 @@
  * Demo-mode data. Seeds a believable activity history so the product can be
  * explored without a treasury, RPC or TikTok credentials.
  */
+import type { InStatement } from "@libsql/client";
 import { Keypair } from "@solana/web3.js";
 import { feeTag } from "./config";
-import { db, getMeta, insertLedger, insertPayout, insertToken, setMeta, upsertCreator } from "./db";
+import { batch, getMeta, insertTokenStmt, ledgerStmt, payoutStmts, upsertCreatorStmt } from "./db";
 
 const seedCreators = [
   { handle: "khaby.lame", name: "Khaby Lame" },
@@ -33,17 +34,25 @@ function rng(seed: number) {
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32);
 }
 
-export function seedDemoData() {
-  if (getMeta("demo_seeded")) return;
+let seeding: Promise<void> | null = null;
+
+export function seedDemoData(): Promise<void> {
+  if (!seeding) seeding = doSeed();
+  return seeding;
+}
+
+async function doSeed() {
+  if (await getMeta("demo_seeded")) return;
   const rand = rng(42);
   const SOL_USD = 150;
   const now = Date.now();
-  const tx = db().transaction(() => {
-    for (const c of seedCreators) upsertCreator({ handle: c.handle, display_name: c.name });
-    seedTokens.forEach((t, i) => {
-      const mint = Keypair.generate().publicKey.toBase58();
-      const created = now - (seedTokens.length - i) * 6 * 3600_000 - rand() * 3600_000;
-      insertToken({
+  const stmts: InStatement[] = [];
+  for (const c of seedCreators) stmts.push(upsertCreatorStmt({ handle: c.handle, display_name: c.name }));
+  seedTokens.forEach((t, i) => {
+    const mint = Keypair.generate().publicKey.toBase58();
+    const created = now - (seedTokens.length - i) * 6 * 3600_000 - rand() * 3600_000;
+    stmts.push(
+      insertTokenStmt({
         mint,
         name: t.name,
         symbol: t.symbol,
@@ -57,27 +66,29 @@ export function seedDemoData() {
         status: "live",
         demo: 1,
         created_at: created,
-      });
-      // A handful of fee credits per token.
-      const n = 3 + Math.floor(rand() * 6);
-      let cum = 0;
-      for (let k = 0; k < n; k++) {
-        const lamports = Math.round((0.02 + rand() * 0.6) * 1e9);
-        cum += lamports;
-        insertLedger({
+      }),
+    );
+    const n = 3 + Math.floor(rand() * 6);
+    let cum = 0;
+    for (let k = 0; k < n; k++) {
+      const lamports = Math.round((0.02 + rand() * 0.6) * 1e9);
+      cum += lamports;
+      stmts.push(
+        ledgerStmt({
           handle: t.handle,
           mint,
           kind: "credit",
           lamports,
           usd_cents: Math.round((lamports / 1e9) * SOL_USD * 100),
           ref: `demo-claim-${i}-${k}`,
-          ts: created + ((k + 1) * (now - created)) / (n + 1),
-        });
-      }
-      // Some creators have been paid already.
-      if (rand() > 0.35) {
-        const lamports = Math.round(cum * (0.5 + rand() * 0.4));
-        insertPayout({
+          ts: Math.round(created + ((k + 1) * (now - created)) / (n + 1)),
+        }),
+      );
+    }
+    if (rand() > 0.35) {
+      const lamports = Math.round(cum * (0.5 + rand() * 0.4));
+      stmts.push(
+        ...payoutStmts({
           handle: t.handle,
           wallet: Keypair.generate().publicKey.toBase58(),
           lamports,
@@ -85,11 +96,11 @@ export function seedDemoData() {
           sig: `demo-payout-${i}`,
           milestone_cents: 500,
           demo: 1,
-          ts: now - rand() * 5 * 3600_000,
-        });
-      }
-    });
-    setMeta("demo_seeded", "1");
+          ts: Math.round(now - rand() * 5 * 3600_000),
+        }),
+      );
+    }
   });
-  tx();
+  stmts.push({ sql: "INSERT OR IGNORE INTO meta(key,value) VALUES('demo_seeded','1')", args: [] });
+  await batch(stmts);
 }

@@ -27,7 +27,7 @@ const Fields = z.object({
 });
 
 export async function POST(req: Request) {
-  ready();
+  await ready();
   let form: FormData;
   try {
     form = await req.formData();

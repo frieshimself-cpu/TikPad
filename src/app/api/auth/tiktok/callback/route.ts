@@ -7,7 +7,7 @@ import { setSession } from "@/lib/session";
 import { exchangeCode, fetchProfile } from "@/lib/tiktok";
 
 export async function GET(req: Request) {
-  ready();
+  await ready();
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
@@ -23,7 +23,7 @@ export async function GET(req: Request) {
   try {
     const { accessToken, openId } = await exchangeCode(code);
     const profile = await fetchProfile(accessToken);
-    const creator = upsertCreator({ handle: profile.username, display_name: profile.displayName, avatar_url: profile.avatarUrl, tiktok_open_id: openId });
+    const creator = await upsertCreator({ handle: profile.username, display_name: profile.displayName, avatar_url: profile.avatarUrl, tiktok_open_id: openId });
     await setSession({ creatorId: creator.id, handle: creator.handle });
     return NextResponse.redirect(`${config.appUrl}/claim`);
   } catch (e) {

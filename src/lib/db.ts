@@ -1,9 +1,14 @@
 /**
- * SQLite data layer (better-sqlite3). Single file, synchronous, zero setup.
- * The schema is created on first open. Money is stored in lamports (integers)
- * plus a USD-cents snapshot taken at the time of each ledger entry.
+ * Data layer on libsql (SQLite dialect). One code path for every environment:
+ *
+ *   - TURSO_DATABASE_URL set      → hosted Turso database (what you want on Vercel)
+ *   - otherwise, on Vercel        → in-memory database, re-seeded on every cold start (demo only)
+ *   - otherwise                   → local file at DATABASE_PATH
+ *
+ * Money is stored in lamports (integers) plus a USD-cents snapshot taken at the
+ * time of each ledger entry.
  */
-import Database from "better-sqlite3";
+import { createClient, type Client, type InArgs, type InStatement } from "@libsql/client";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { config } from "./config";
@@ -99,7 +104,6 @@ CREATE TABLE IF NOT EXISTS tokens (
   created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS tokens_handle ON tokens(recipient_handle);
-
 CREATE TABLE IF NOT EXISTS creators (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   handle TEXT NOT NULL UNIQUE,
@@ -109,7 +113,6 @@ CREATE TABLE IF NOT EXISTS creators (
   payout_wallet TEXT,
   created_at INTEGER NOT NULL
 );
-
 CREATE TABLE IF NOT EXISTS trades (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   mint TEXT NOT NULL,
@@ -121,14 +124,12 @@ CREATE TABLE IF NOT EXISTS trades (
   attributed INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS trades_mint ON trades(mint, attributed);
-
 CREATE TABLE IF NOT EXISTS fee_claims (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   sig TEXT NOT NULL UNIQUE,
   lamports INTEGER NOT NULL,
   ts INTEGER NOT NULL
 );
-
 CREATE TABLE IF NOT EXISTS ledger (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   handle TEXT NOT NULL,
@@ -140,7 +141,6 @@ CREATE TABLE IF NOT EXISTS ledger (
   ts INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS ledger_handle ON ledger(handle, kind);
-
 CREATE TABLE IF NOT EXISTS payouts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   handle TEXT NOT NULL,
@@ -153,7 +153,6 @@ CREATE TABLE IF NOT EXISTS payouts (
   ts INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS payouts_handle ON payouts(handle);
-
 CREATE TABLE IF NOT EXISTS launch_quotes (
   id TEXT PRIMARY KEY,
   wallet TEXT NOT NULL,
@@ -163,7 +162,6 @@ CREATE TABLE IF NOT EXISTS launch_quotes (
   created_at INTEGER NOT NULL,
   used INTEGER NOT NULL DEFAULT 0
 );
-
 CREATE TABLE IF NOT EXISTS meta (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL
@@ -171,86 +169,107 @@ CREATE TABLE IF NOT EXISTS meta (
 `;
 
 declare global {
-  var __tikpadDb: Database.Database | undefined;
+  var __tikpadDb: Promise<Client> | undefined;
 }
 
-export function db(): Database.Database {
+export function dbUrl(): string {
+  if (config.tursoUrl) return config.tursoUrl;
+  if (process.env.VERCEL) return ":memory:";
+  return `file:${config.dbPath}`;
+}
+
+export const isEphemeralDb = () => dbUrl() === ":memory:";
+
+export function db(): Promise<Client> {
   if (globalThis.__tikpadDb) return globalThis.__tikpadDb;
-  mkdirSync(dirname(config.dbPath), { recursive: true });
-  const d = new Database(config.dbPath);
-  d.pragma("journal_mode = WAL");
-  d.pragma("foreign_keys = ON");
-  d.exec(SCHEMA);
-  globalThis.__tikpadDb = d;
-  return d;
+  globalThis.__tikpadDb = (async () => {
+    const url = dbUrl();
+    if (url.startsWith("file:")) mkdirSync(dirname(url.slice(5)), { recursive: true });
+    const client = createClient({ url, authToken: config.tursoAuthToken || undefined });
+    await client.executeMultiple(SCHEMA);
+    return client;
+  })();
+  return globalThis.__tikpadDb;
+}
+
+/* ---------- tiny query helpers ---------- */
+type Row = Record<string, unknown>;
+async function all<T = Row>(sql: string, args: InArgs = []): Promise<T[]> {
+  const c = await db();
+  const rs = await c.execute({ sql, args });
+  return rs.rows as unknown as T[];
+}
+async function one<T = Row>(sql: string, args: InArgs = []): Promise<T | undefined> {
+  return (await all<T>(sql, args))[0];
+}
+async function run(sql: string, args: InArgs = []): Promise<number> {
+  const c = await db();
+  return (await c.execute({ sql, args })).rowsAffected;
+}
+export async function batch(stmts: InStatement[]) {
+  const c = await db();
+  return c.batch(stmts, "write");
 }
 
 /* ---------- meta ---------- */
-export const getMeta = (key: string): string | null =>
-  (db().prepare("SELECT value FROM meta WHERE key = ?").get(key) as { value: string } | undefined)?.value ?? null;
+export const getMeta = async (key: string) => (await one<{ value: string }>("SELECT value FROM meta WHERE key = ?", [key]))?.value ?? null;
 export const setMeta = (key: string, value: string) =>
-  db().prepare("INSERT INTO meta(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(key, value);
+  run("INSERT INTO meta(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", [key, value]);
 
 /* ---------- tokens ---------- */
-export function insertToken(t: Omit<TokenRow, "created_at"> & { created_at?: number }) {
-  db()
-    .prepare(
-      `INSERT INTO tokens(mint,name,symbol,description,image_url,metadata_uri,recipient_handle,launcher_wallet,dev_buy_lamports,create_sig,status,demo,created_at)
-       VALUES(@mint,@name,@symbol,@description,@image_url,@metadata_uri,@recipient_handle,@launcher_wallet,@dev_buy_lamports,@create_sig,@status,@demo,@created_at)`,
-    )
-    .run({ ...t, created_at: t.created_at ?? Date.now() });
+export function insertTokenStmt(t: Omit<TokenRow, "created_at"> & { created_at?: number }): InStatement {
+  return {
+    sql: `INSERT INTO tokens(mint,name,symbol,description,image_url,metadata_uri,recipient_handle,launcher_wallet,dev_buy_lamports,create_sig,status,demo,created_at)
+          VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+    args: [t.mint, t.name, t.symbol, t.description, t.image_url, t.metadata_uri, t.recipient_handle, t.launcher_wallet, t.dev_buy_lamports, t.create_sig, t.status, t.demo, t.created_at ?? Date.now()],
+  };
 }
+export const insertToken = (t: Omit<TokenRow, "created_at"> & { created_at?: number }) => batch([insertTokenStmt(t)]);
 export const updateTokenStatus = (mint: string, status: TokenStatus, create_sig?: string | null) =>
-  db().prepare("UPDATE tokens SET status=?, create_sig=COALESCE(?, create_sig) WHERE mint=?").run(status, create_sig ?? null, mint);
-export const getToken = (mint: string) => db().prepare("SELECT * FROM tokens WHERE mint=?").get(mint) as TokenRow | undefined;
-export const listTokens = (limit = 50) =>
-  db().prepare("SELECT * FROM tokens WHERE status='live' ORDER BY created_at DESC LIMIT ?").all(limit) as TokenRow[];
+  run("UPDATE tokens SET status=?, create_sig=COALESCE(?, create_sig) WHERE mint=?", [status, create_sig ?? null, mint]);
+export const getToken = (mint: string) => one<TokenRow>("SELECT * FROM tokens WHERE mint=?", [mint]);
+export const listTokens = (limit = 50) => all<TokenRow>("SELECT * FROM tokens WHERE status='live' ORDER BY created_at DESC LIMIT ?", [limit]);
 export const listTokensForHandle = (handle: string) =>
-  db().prepare("SELECT * FROM tokens WHERE recipient_handle=? AND status='live' ORDER BY created_at DESC").all(handle) as TokenRow[];
-export const listLiveMints = () => (db().prepare("SELECT mint FROM tokens WHERE status='live' AND demo=0").all() as { mint: string }[]).map((r) => r.mint);
+  all<TokenRow>("SELECT * FROM tokens WHERE recipient_handle=? AND status='live' ORDER BY created_at DESC", [handle]);
+export const listLiveMints = async () => (await all<{ mint: string }>("SELECT mint FROM tokens WHERE status='live' AND demo=0")).map((r) => r.mint);
 
 /* ---------- creators ---------- */
-export const getCreatorByHandle = (handle: string) =>
-  db().prepare("SELECT * FROM creators WHERE handle=?").get(handle) as CreatorRow | undefined;
-export const getCreatorById = (id: number) => db().prepare("SELECT * FROM creators WHERE id=?").get(id) as CreatorRow | undefined;
+export const getCreatorByHandle = (handle: string) => one<CreatorRow>("SELECT * FROM creators WHERE handle=?", [handle]);
+export const getCreatorById = (id: number) => one<CreatorRow>("SELECT * FROM creators WHERE id=?", [id]);
 
-export function upsertCreator(c: { handle: string; display_name?: string | null; avatar_url?: string | null; tiktok_open_id?: string | null }) {
-  db()
-    .prepare(
-      `INSERT INTO creators(handle,display_name,avatar_url,tiktok_open_id,created_at)
-       VALUES(@handle,@display_name,@avatar_url,@tiktok_open_id,@created_at)
-       ON CONFLICT(handle) DO UPDATE SET
-         display_name=COALESCE(excluded.display_name, creators.display_name),
-         avatar_url=COALESCE(excluded.avatar_url, creators.avatar_url),
-         tiktok_open_id=COALESCE(excluded.tiktok_open_id, creators.tiktok_open_id)`,
-    )
-    .run({ display_name: null, avatar_url: null, tiktok_open_id: null, ...c, created_at: Date.now() });
-  return getCreatorByHandle(c.handle)!;
+export function upsertCreatorStmt(c: { handle: string; display_name?: string | null; avatar_url?: string | null; tiktok_open_id?: string | null }): InStatement {
+  return {
+    sql: `INSERT INTO creators(handle,display_name,avatar_url,tiktok_open_id,created_at) VALUES(?,?,?,?,?)
+          ON CONFLICT(handle) DO UPDATE SET
+            display_name=COALESCE(excluded.display_name, creators.display_name),
+            avatar_url=COALESCE(excluded.avatar_url, creators.avatar_url),
+            tiktok_open_id=COALESCE(excluded.tiktok_open_id, creators.tiktok_open_id)`,
+    args: [c.handle, c.display_name ?? null, c.avatar_url ?? null, c.tiktok_open_id ?? null, Date.now()],
+  };
 }
-export const setPayoutWallet = (id: number, wallet: string | null) =>
-  db().prepare("UPDATE creators SET payout_wallet=? WHERE id=?").run(wallet, id);
+export async function upsertCreator(c: { handle: string; display_name?: string | null; avatar_url?: string | null; tiktok_open_id?: string | null }) {
+  await batch([upsertCreatorStmt(c)]);
+  return (await getCreatorByHandle(c.handle))!;
+}
+export const setPayoutWallet = (id: number, wallet: string | null) => run("UPDATE creators SET payout_wallet=? WHERE id=?", [wallet, id]);
 
 /* ---------- trades ---------- */
-export function insertTrade(t: Omit<TradeRow, "id" | "attributed">) {
-  return db()
-    .prepare("INSERT OR IGNORE INTO trades(mint,sig,side,sol_lamports,trader,ts) VALUES(@mint,@sig,@side,@sol_lamports,@trader,@ts)")
-    .run(t).changes;
-}
+export const insertTrade = (t: Omit<TradeRow, "id" | "attributed">) =>
+  run("INSERT OR IGNORE INTO trades(mint,sig,side,sol_lamports,trader,ts) VALUES(?,?,?,?,?,?)", [t.mint, t.sig, t.side, t.sol_lamports, t.trader, t.ts]);
 export const unattributedVolumeByMint = () =>
-  db().prepare("SELECT mint, SUM(sol_lamports) AS vol FROM trades WHERE attributed=0 GROUP BY mint").all() as { mint: string; vol: number }[];
-export const markTradesAttributed = () => db().prepare("UPDATE trades SET attributed=1 WHERE attributed=0").run();
-export const tokenVolume = (mint: string) =>
-  ((db().prepare("SELECT COALESCE(SUM(sol_lamports),0) AS v FROM trades WHERE mint=?").get(mint) as { v: number }).v ?? 0);
+  all<{ mint: string; vol: number }>("SELECT mint, SUM(sol_lamports) AS vol FROM trades WHERE attributed=0 GROUP BY mint");
+export const markTradesAttributed = () => run("UPDATE trades SET attributed=1 WHERE attributed=0");
+export const tokenVolume = async (mint: string) =>
+  (await one<{ v: number }>("SELECT COALESCE(SUM(sol_lamports),0) AS v FROM trades WHERE mint=?", [mint]))?.v ?? 0;
 
 /* ---------- claims / ledger / payouts ---------- */
-export const insertClaim = (sig: string, lamports: number) =>
-  db().prepare("INSERT OR IGNORE INTO fee_claims(sig,lamports,ts) VALUES(?,?,?)").run(sig, lamports, Date.now());
+export const insertClaim = (sig: string, lamports: number) => run("INSERT OR IGNORE INTO fee_claims(sig,lamports,ts) VALUES(?,?,?)", [sig, lamports, Date.now()]);
 
-export function insertLedger(e: Omit<LedgerRow, "id" | "ts"> & { ts?: number }) {
-  db()
-    .prepare("INSERT INTO ledger(handle,mint,kind,lamports,usd_cents,ref,ts) VALUES(@handle,@mint,@kind,@lamports,@usd_cents,@ref,@ts)")
-    .run({ ...e, ts: e.ts ?? Date.now() });
-}
+export const ledgerStmt = (e: Omit<LedgerRow, "id" | "ts"> & { ts?: number }): InStatement => ({
+  sql: "INSERT INTO ledger(handle,mint,kind,lamports,usd_cents,ref,ts) VALUES(?,?,?,?,?,?,?)",
+  args: [e.handle, e.mint, e.kind, e.lamports, e.usd_cents, e.ref, e.ts ?? Date.now()],
+});
+export const insertLedger = (e: Omit<LedgerRow, "id" | "ts"> & { ts?: number }) => batch([ledgerStmt(e)]);
 
 export interface Balance {
   earned_lamports: number;
@@ -260,101 +279,77 @@ export interface Balance {
   unpaid_lamports: number;
   unpaid_cents: number;
 }
-export function balanceForHandle(handle: string): Balance {
-  const r = db()
-    .prepare(
-      `SELECT
-         COALESCE(SUM(CASE WHEN kind='credit' THEN lamports END),0) AS earned_lamports,
-         COALESCE(SUM(CASE WHEN kind='credit' THEN usd_cents END),0) AS earned_cents,
-         COALESCE(SUM(CASE WHEN kind='payout' THEN lamports END),0) AS paid_lamports,
-         COALESCE(SUM(CASE WHEN kind='payout' THEN usd_cents END),0) AS paid_cents
-       FROM ledger WHERE handle=?`,
-    )
-    .get(handle) as { earned_lamports: number; earned_cents: number; paid_lamports: number; paid_cents: number };
-  return {
-    ...r,
-    unpaid_lamports: r.earned_lamports - r.paid_lamports,
-    unpaid_cents: r.earned_cents - r.paid_cents,
-  };
+export async function balanceForHandle(handle: string): Promise<Balance> {
+  const r = (await one<{ earned_lamports: number; earned_cents: number; paid_lamports: number; paid_cents: number }>(
+    `SELECT
+       COALESCE(SUM(CASE WHEN kind='credit' THEN lamports END),0) AS earned_lamports,
+       COALESCE(SUM(CASE WHEN kind='credit' THEN usd_cents END),0) AS earned_cents,
+       COALESCE(SUM(CASE WHEN kind='payout' THEN lamports END),0) AS paid_lamports,
+       COALESCE(SUM(CASE WHEN kind='payout' THEN usd_cents END),0) AS paid_cents
+     FROM ledger WHERE handle=?`,
+    [handle],
+  ))!;
+  return { ...r, unpaid_lamports: r.earned_lamports - r.paid_lamports, unpaid_cents: r.earned_cents - r.paid_cents };
 }
-export const balanceForMint = (mint: string) =>
-  (db().prepare("SELECT COALESCE(SUM(lamports),0) AS l, COALESCE(SUM(usd_cents),0) AS c FROM ledger WHERE mint=? AND kind='credit'").get(mint) as {
-    l: number;
-    c: number;
-  });
+export const balanceForMint = async (mint: string) =>
+  (await one<{ l: number; c: number }>("SELECT COALESCE(SUM(lamports),0) AS l, COALESCE(SUM(usd_cents),0) AS c FROM ledger WHERE mint=? AND kind='credit'", [mint]))!;
 
 export const handlesWithUnpaidBalance = () =>
-  (
-    db()
-      .prepare(
-        `SELECT handle,
-           SUM(CASE WHEN kind='credit' THEN lamports ELSE 0 END) - SUM(CASE WHEN kind='payout' THEN lamports ELSE 0 END) AS unpaid_lamports,
-           SUM(CASE WHEN kind='credit' THEN usd_cents ELSE 0 END) - SUM(CASE WHEN kind='payout' THEN usd_cents ELSE 0 END) AS unpaid_cents
-         FROM ledger WHERE kind IN ('credit','payout') GROUP BY handle HAVING unpaid_lamports > 0`,
-      )
-      .all() as { handle: string; unpaid_lamports: number; unpaid_cents: number }[]
+  all<{ handle: string; unpaid_lamports: number; unpaid_cents: number }>(
+    `SELECT handle,
+       SUM(CASE WHEN kind='credit' THEN lamports ELSE 0 END) - SUM(CASE WHEN kind='payout' THEN lamports ELSE 0 END) AS unpaid_lamports,
+       SUM(CASE WHEN kind='credit' THEN usd_cents ELSE 0 END) - SUM(CASE WHEN kind='payout' THEN usd_cents ELSE 0 END) AS unpaid_cents
+     FROM ledger WHERE kind IN ('credit','payout') GROUP BY handle HAVING unpaid_lamports > 0`,
   );
 
-export function insertPayout(p: Omit<PayoutRow, "id" | "ts"> & { ts?: number }) {
+export function payoutStmts(p: Omit<PayoutRow, "id" | "ts"> & { ts?: number }): InStatement[] {
   const ts = p.ts ?? Date.now();
-  const tx = db().transaction(() => {
-    db()
-      .prepare("INSERT INTO payouts(handle,wallet,lamports,usd_cents,sig,milestone_cents,demo,ts) VALUES(@handle,@wallet,@lamports,@usd_cents,@sig,@milestone_cents,@demo,@ts)")
-      .run({ ...p, ts });
-    insertLedger({ handle: p.handle, mint: null, kind: "payout", lamports: p.lamports, usd_cents: p.usd_cents, ref: p.sig, ts });
-  });
-  tx();
+  return [
+    {
+      sql: "INSERT INTO payouts(handle,wallet,lamports,usd_cents,sig,milestone_cents,demo,ts) VALUES(?,?,?,?,?,?,?,?)",
+      args: [p.handle, p.wallet, p.lamports, p.usd_cents, p.sig, p.milestone_cents, p.demo, ts],
+    },
+    ledgerStmt({ handle: p.handle, mint: null, kind: "payout", lamports: p.lamports, usd_cents: p.usd_cents, ref: p.sig, ts }),
+  ];
 }
-export const listPayouts = (limit = 30) =>
-  db().prepare("SELECT * FROM payouts ORDER BY ts DESC LIMIT ?").all(limit) as PayoutRow[];
-export const listPayoutsForHandle = (handle: string, limit = 50) =>
-  db().prepare("SELECT * FROM payouts WHERE handle=? ORDER BY ts DESC LIMIT ?").all(handle, limit) as PayoutRow[];
+export const insertPayout = (p: Omit<PayoutRow, "id" | "ts"> & { ts?: number }) => batch(payoutStmts(p));
+export const listPayouts = (limit = 30) => all<PayoutRow>("SELECT * FROM payouts ORDER BY ts DESC LIMIT ?", [limit]);
+export const listPayoutsForHandle = (handle: string, limit = 50) => all<PayoutRow>("SELECT * FROM payouts WHERE handle=? ORDER BY ts DESC LIMIT ?", [handle, limit]);
 export const listCreditsForHandle = (handle: string, limit = 50) =>
-  db().prepare("SELECT * FROM ledger WHERE handle=? AND kind='credit' ORDER BY ts DESC LIMIT ?").all(handle, limit) as LedgerRow[];
-export const listCreditsForMint = (mint: string, limit = 50) =>
-  db().prepare("SELECT * FROM ledger WHERE mint=? AND kind='credit' ORDER BY ts DESC LIMIT ?").all(mint, limit) as LedgerRow[];
+  all<LedgerRow>("SELECT * FROM ledger WHERE handle=? AND kind='credit' ORDER BY ts DESC LIMIT ?", [handle, limit]);
+export const listCreditsForMint = (mint: string, limit = 50) => all<LedgerRow>("SELECT * FROM ledger WHERE mint=? AND kind='credit' ORDER BY ts DESC LIMIT ?", [mint, limit]);
 
 /** Top creators by lifetime earnings. */
 export const leaderboard = (limit = 10) =>
-  db()
-    .prepare(
-      `SELECT l.handle, SUM(l.usd_cents) AS earned_cents, SUM(l.lamports) AS earned_lamports,
-              (SELECT COUNT(*) FROM tokens t WHERE t.recipient_handle=l.handle AND t.status='live') AS token_count,
-              c.avatar_url, c.display_name, (c.payout_wallet IS NOT NULL) AS linked
-       FROM ledger l LEFT JOIN creators c ON c.handle=l.handle
-       WHERE l.kind='credit' GROUP BY l.handle ORDER BY earned_cents DESC LIMIT ?`,
-    )
-    .all(limit) as {
-    handle: string;
-    earned_cents: number;
-    earned_lamports: number;
-    token_count: number;
-    avatar_url: string | null;
-    display_name: string | null;
-    linked: number;
-  }[];
+  all<{ handle: string; earned_cents: number; earned_lamports: number; token_count: number; avatar_url: string | null; display_name: string | null; linked: number }>(
+    `SELECT l.handle, SUM(l.usd_cents) AS earned_cents, SUM(l.lamports) AS earned_lamports,
+            (SELECT COUNT(*) FROM tokens t WHERE t.recipient_handle=l.handle AND t.status='live') AS token_count,
+            c.avatar_url, c.display_name, (c.payout_wallet IS NOT NULL) AS linked
+     FROM ledger l LEFT JOIN creators c ON c.handle=l.handle
+     WHERE l.kind='credit' AND l.handle NOT LIKE '\\_\\_%' ESCAPE '\\' GROUP BY l.handle ORDER BY earned_cents DESC LIMIT ?`,
+    [limit],
+  );
 
-export function globalStats() {
-  const t = db().prepare("SELECT COUNT(*) AS n FROM tokens WHERE status='live'").get() as { n: number };
-  const c = db().prepare("SELECT COUNT(DISTINCT handle) AS n FROM ledger WHERE kind='credit'").get() as { n: number };
-  const p = db().prepare("SELECT COALESCE(SUM(usd_cents),0) AS cents, COALESCE(SUM(lamports),0) AS lamports, COUNT(*) AS n FROM payouts").get() as {
-    cents: number;
-    lamports: number;
-    n: number;
-  };
-  const e = db().prepare("SELECT COALESCE(SUM(usd_cents),0) AS cents FROM ledger WHERE kind='credit'").get() as { cents: number };
-  return { tokens: t.n, creators: c.n, paid_cents: p.cents, paid_lamports: p.lamports, payouts: p.n, earned_cents: e.cents };
+export async function globalStats() {
+  const [t, c, p, e] = await Promise.all([
+    one<{ n: number }>("SELECT COUNT(*) AS n FROM tokens WHERE status='live'"),
+    one<{ n: number }>("SELECT COUNT(DISTINCT handle) AS n FROM ledger WHERE kind='credit'"),
+    one<{ cents: number; lamports: number; n: number }>("SELECT COALESCE(SUM(usd_cents),0) AS cents, COALESCE(SUM(lamports),0) AS lamports, COUNT(*) AS n FROM payouts"),
+    one<{ cents: number }>("SELECT COALESCE(SUM(usd_cents),0) AS cents FROM ledger WHERE kind='credit'"),
+  ]);
+  return { tokens: t!.n, creators: c!.n, paid_cents: p!.cents, paid_lamports: p!.lamports, payouts: p!.n, earned_cents: e!.cents };
 }
 
 /* ---------- launch quotes ---------- */
 export const insertQuote = (q: Omit<QuoteRow, "used" | "created_at">) =>
-  db()
-    .prepare("INSERT INTO launch_quotes(id,wallet,handle,dev_buy_lamports,total_lamports,created_at) VALUES(@id,@wallet,@handle,@dev_buy_lamports,@total_lamports,@created_at)")
-    .run({ ...q, created_at: Date.now() });
-export const getQuote = (id: string) => db().prepare("SELECT * FROM launch_quotes WHERE id=?").get(id) as QuoteRow | undefined;
-export const markQuoteUsed = (id: string) => db().prepare("UPDATE launch_quotes SET used=1 WHERE id=?").run(id);
+  run("INSERT INTO launch_quotes(id,wallet,handle,dev_buy_lamports,total_lamports,created_at) VALUES(?,?,?,?,?,?)", [
+    q.id, q.wallet, q.handle, q.dev_buy_lamports, q.total_lamports, Date.now(),
+  ]);
+export const getQuote = (id: string) => one<QuoteRow>("SELECT * FROM launch_quotes WHERE id=?", [id]);
+/** Marks a quote used. Returns false if it was already used (atomic, so a quote cannot be spent twice). */
+export const claimQuote = async (id: string) => (await run("UPDATE launch_quotes SET used=1 WHERE id=? AND used=0", [id])) === 1;
 
-/** Unified activity feed for the landing page: payouts + fee credits, newest first. */
+/** Unified activity feed for the landing page: payouts + fee credits + launches, newest first. */
 export interface FeedItem {
   kind: "payout" | "credit" | "launch";
   handle: string;
@@ -366,17 +361,15 @@ export interface FeedItem {
   demo: number;
   ts: number;
 }
-export function activityFeed(limit = 40): FeedItem[] {
-  return db()
-    .prepare(
-      `SELECT * FROM (
-         SELECT 'payout' AS kind, handle, NULL AS mint, NULL AS symbol, lamports, usd_cents, sig AS ref, demo, ts FROM payouts
-         UNION ALL
-         SELECT 'credit', l.handle, l.mint, t.symbol, l.lamports, l.usd_cents, l.ref, t.demo, l.ts
-           FROM ledger l LEFT JOIN tokens t ON t.mint=l.mint WHERE l.kind='credit'
-         UNION ALL
-         SELECT 'launch', recipient_handle, mint, symbol, dev_buy_lamports, 0, create_sig, demo, created_at FROM tokens WHERE status='live'
-       ) ORDER BY ts DESC LIMIT ?`,
-    )
-    .all(limit) as FeedItem[];
-}
+export const activityFeed = (limit = 40) =>
+  all<FeedItem>(
+    `SELECT * FROM (
+       SELECT 'payout' AS kind, handle, NULL AS mint, NULL AS symbol, lamports, usd_cents, sig AS ref, demo, ts FROM payouts
+       UNION ALL
+       SELECT 'credit', l.handle, l.mint, t.symbol, l.lamports, l.usd_cents, l.ref, COALESCE(t.demo,0), l.ts
+         FROM ledger l LEFT JOIN tokens t ON t.mint=l.mint WHERE l.kind='credit'
+       UNION ALL
+       SELECT 'launch', recipient_handle, mint, symbol, dev_buy_lamports, 0, create_sig, demo, created_at FROM tokens WHERE status='live'
+     ) ORDER BY ts DESC LIMIT ?`,
+    [limit],
+  );

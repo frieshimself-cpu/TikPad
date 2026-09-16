@@ -2,18 +2,17 @@ import Link from "next/link";
 import { LiveFeed } from "@/components/LiveFeed";
 import { Stat } from "@/components/Stat";
 import { Avatar } from "@/components/Avatar";
-import { ready } from "@/lib/bootstrap";
+import { demoTick, ready } from "@/lib/bootstrap";
 import { activityFeed, globalStats, leaderboard } from "@/lib/db";
 import { isDemoMode } from "@/lib/config";
 import { fmtUsd } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-export default function Home() {
-  ready();
-  const feed = activityFeed(40);
-  const stats = globalStats();
-  const top = leaderboard(6);
+export default async function Home() {
+  await ready();
+  await demoTick();
+  const [feed, stats, top] = await Promise.all([activityFeed(40), globalStats(), leaderboard(6)]);
   const demo = isDemoMode();
 
   return (

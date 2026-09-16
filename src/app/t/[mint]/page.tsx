@@ -9,13 +9,11 @@ import { fmtSol, fmtUsd, short, timeAgo } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function TokenPage({ params }: PageProps<"/t/[mint]">) {
-  ready();
+  await ready();
   const { mint } = await params;
-  const t = getToken(mint);
+  const t = await getToken(mint);
   if (!t) notFound();
-  const bal = balanceForMint(mint);
-  const credits = listCreditsForMint(mint, 50);
-  const vol = tokenVolume(mint);
+  const [bal, credits, vol] = await Promise.all([balanceForMint(mint), listCreditsForMint(mint, 50), tokenVolume(mint)]);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">

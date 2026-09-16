@@ -13,12 +13,12 @@ const Body = z.object({
 });
 
 export async function POST(req: Request) {
-  ready();
+  await ready();
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   const { wallet, devBuySol } = parsed.data;
   const handle = normalizeHandle(parsed.data.handle);
   if (!handle) return NextResponse.json({ error: "That does not look like a TikTok handle." }, { status: 400 });
   if (!isValidPubkey(wallet)) return NextResponse.json({ error: "Invalid wallet address." }, { status: 400 });
-  return NextResponse.json(quoteLaunch(wallet, handle, devBuySol));
+  return NextResponse.json(await quoteLaunch(wallet, handle, devBuySol));
 }

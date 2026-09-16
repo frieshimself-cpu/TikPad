@@ -14,7 +14,9 @@ export const LAMPORTS_PER_SOL = 1_000_000_000;
 
 export const config = {
   appName: "TikPad",
-  appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  appUrl:
+    process.env.NEXT_PUBLIC_APP_URL ??
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000"),
   rpcUrl:
     process.env.SOLANA_RPC_URL ??
     process.env.NEXT_PUBLIC_SOLANA_RPC_URL ??
@@ -35,6 +37,11 @@ export const config = {
 
   sessionSecret: process.env.SESSION_SECRET ?? "",
   dbPath: process.env.DATABASE_PATH ?? "./data/tikpad.db",
+  /** Turso (hosted libsql). Needed for persistent data on Vercel. */
+  tursoUrl: process.env.TURSO_DATABASE_URL ?? "",
+  tursoAuthToken: process.env.TURSO_AUTH_TOKEN ?? "",
+  /** Vercel sets this header on cron invocations; protects /api/cron/router. */
+  cronSecret: process.env.CRON_SECRET ?? "",
 
   /** Share of every claimed creator fee that goes to the TikTok creator (bps). */
   creatorShareBps: num(process.env.CREATOR_SHARE_BPS, 8000),

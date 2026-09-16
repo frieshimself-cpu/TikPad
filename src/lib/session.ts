@@ -6,12 +6,16 @@ import { cookies } from "next/headers";
 import { config } from "./config";
 
 const COOKIE = "tikpad_session";
-let devSecret: string | null = null;
+let warned = false;
 
 function secret() {
   if (config.sessionSecret) return config.sessionSecret;
-  if (!devSecret) devSecret = randomBytes(32).toString("hex");
-  return devSecret;
+  // A fixed fallback keeps sessions valid across serverless instances. Set SESSION_SECRET in production.
+  if (!warned) {
+    warned = true;
+    console.warn("SESSION_SECRET is not set; using an insecure default. Set it before going live.");
+  }
+  return "tikpad-insecure-default-session-secret";
 }
 
 export interface Session {

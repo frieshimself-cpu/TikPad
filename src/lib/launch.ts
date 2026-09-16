@@ -4,7 +4,7 @@
 import { randomBytes } from "node:crypto";
 import { Keypair } from "@solana/web3.js";
 import { config, feeTag, isDemoMode, LAMPORTS_PER_SOL } from "./config";
-import { getQuote, insertQuote, insertToken, markQuoteUsed, updateTokenStatus } from "./db";
+import { claimQuote, getQuote, insertQuote, insertToken } from "./db";
 import { createToken, uploadMetadata } from "./pumpportal";
 import { sweepTokensTo, treasuryAddress, verifyPayment } from "./solana";
 
@@ -21,11 +21,11 @@ export interface LaunchInput {
   website?: string;
 }
 
-export function quoteLaunch(wallet: string, handle: string, devBuySol: number) {
+export async function quoteLaunch(wallet: string, handle: string, devBuySol: number) {
   const dev_buy_lamports = Math.round(devBuySol * LAMPORTS_PER_SOL);
   const total_lamports = dev_buy_lamports + config.launchNetworkLamports + config.launchFeeLamports;
   const id = `tp_${randomBytes(8).toString("hex")}`;
-  insertQuote({ id, wallet, handle, dev_buy_lamports, total_lamports });
+  await insertQuote({ id, wallet, handle, dev_buy_lamports, total_lamports });
   return {
     id,
     treasury: treasuryAddress(),
@@ -38,7 +38,7 @@ export function quoteLaunch(wallet: string, handle: string, devBuySol: number) {
 }
 
 export async function executeLaunch(quoteId: string, paymentSig: string | null, input: LaunchInput) {
-  const q = getQuote(quoteId);
+  const q = await getQuote(quoteId);
   if (!q) throw new Error("Unknown launch quote.");
   if (q.used) throw new Error("This launch quote was already used.");
   if (q.wallet !== input.wallet || q.handle !== input.handle) throw new Error("Quote does not match this launch.");
@@ -49,8 +49,8 @@ export async function executeLaunch(quoteId: string, paymentSig: string | null, 
   if (isDemoMode()) {
     // Simulated launch: no chain interaction, clearly flagged as demo.
     const mint = Keypair.generate().publicKey.toBase58();
-    markQuoteUsed(quoteId);
-    insertToken({
+    if (!(await claimQuote(quoteId))) throw new Error("This launch quote was already used.");
+    await insertToken({
       mint,
       name: input.name,
       symbol: input.symbol,
@@ -70,7 +70,7 @@ export async function executeLaunch(quoteId: string, paymentSig: string | null, 
   if (!paymentSig) throw new Error("Missing payment signature.");
   if (!input.image) throw new Error("A token image is required.");
   await verifyPayment(paymentSig, input.wallet, q.total_lamports, quoteId);
-  markQuoteUsed(quoteId);
+  if (!(await claimQuote(quoteId))) throw new Error("This launch quote was already used.");
 
   const { imageUrl, metadataUri } = await uploadMetadata({
     name: input.name,
@@ -90,7 +90,7 @@ export async function executeLaunch(quoteId: string, paymentSig: string | null, 
     devBuySol: q.dev_buy_lamports / LAMPORTS_PER_SOL,
   });
 
-  insertToken({
+  await insertToken({
     mint,
     name: input.name,
     symbol: input.symbol,
@@ -110,8 +110,8 @@ export async function executeLaunch(quoteId: string, paymentSig: string | null, 
     try {
       await sweepTokensTo(mint, input.wallet);
     } catch (e) {
+      // The launch record is already saved; the sweep can be retried by hand from the treasury.
       console.error("dev-buy sweep failed for", mint, e);
-      updateTokenStatus(mint, "live", signature);
     }
   }
   return { mint, signature, demo: false, imageUrl };
