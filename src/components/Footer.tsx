@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
+import { ContractAddress } from "./ContractAddress";
 
 export function Footer() {
   return (
@@ -10,6 +11,7 @@ export function Footer() {
           <p className="max-w-md text-dim">
             Token creator fees, routed to TikTok creators. Built on pump.fun and Solana. Not affiliated with TikTok or pump.fun.
           </p>
+          <ContractAddress compact />
         </div>
         <nav className="flex gap-6">
           <Link href="/launch" className="hover:text-fg">Launch</Link>

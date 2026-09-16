@@ -5,6 +5,7 @@ import { LiveFeed } from "./LiveFeed";
 import { Stat } from "./Stat";
 import { Avatar } from "./Avatar";
 import { Skeleton } from "./Skeleton";
+import { ContractAddress } from "./ContractAddress";
 import { fmtUsd } from "@/lib/format";
 import { leaderboard, stats, useStore } from "@/lib/store";
 
@@ -29,6 +30,9 @@ export function HomeView() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/launch" className="btn btn-primary">Launch a token</Link>
               <Link href="/docs" className="btn btn-ghost">Read the docs</Link>
+            </div>
+            <div className="mt-8">
+              <ContractAddress />
             </div>
             <dl className="mt-12 grid grid-cols-2 gap-3 lg:grid-cols-4">
               <Stat label="Paid out" value={st ? fmtUsd(st.paid_cents) : "—"} />

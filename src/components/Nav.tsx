@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
 import { WalletButton } from "./WalletButton";
+import { TIKPAD_PUMP_URL } from "@/lib/economics";
 
 export function Nav() {
   return (
@@ -14,6 +15,7 @@ export function Nav() {
             <Link href="/launch" className="hover:text-fg">Launch</Link>
             <Link href="/claim" className="hover:text-fg">Creators</Link>
             <Link href="/docs" className="hover:text-fg">Docs</Link>
+            <a href={TIKPAD_PUMP_URL} target="_blank" rel="noreferrer" className="num text-cyan hover:underline">$TIKPAD</a>
           </nav>
         </div>
         <div className="flex items-center gap-3">
