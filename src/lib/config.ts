@@ -5,6 +5,9 @@
  * explored end to end without touching mainnet.
  */
 
+/** Returns `v` when it is an http(s) URL, otherwise `fallback`. Blank env vars count as unset. */
+const url = (v: string | undefined, fallback: string) => (v && /^https?:\/\//.test(v) ? v : fallback);
+
 const num = (v: string | undefined, fallback: number) => {
   const n = Number(v);
   return Number.isFinite(n) && v !== undefined && v !== "" ? n : fallback;
@@ -14,15 +17,12 @@ export const LAMPORTS_PER_SOL = 1_000_000_000;
 
 export const config = {
   appName: "TikPad",
-  appUrl:
-    process.env.NEXT_PUBLIC_APP_URL ??
-    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000"),
-  rpcUrl:
-    process.env.SOLANA_RPC_URL ??
-    process.env.NEXT_PUBLIC_SOLANA_RPC_URL ??
-    "https://api.mainnet-beta.solana.com",
-  publicRpcUrl:
-    process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? "https://api.mainnet-beta.solana.com",
+  appUrl: url(
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000",
+  ),
+  rpcUrl: url(process.env.SOLANA_RPC_URL, url(process.env.NEXT_PUBLIC_SOLANA_RPC_URL, "https://api.mainnet-beta.solana.com")),
+  publicRpcUrl: url(process.env.NEXT_PUBLIC_SOLANA_RPC_URL, "https://api.mainnet-beta.solana.com"),
 
   /** Base58 secret key of the treasury wallet (the on-chain creator of every launch). */
   treasurySecretKey: process.env.TREASURY_SECRET_KEY ?? "",
@@ -30,7 +30,7 @@ export const config = {
   treasuryPublicKey: process.env.NEXT_PUBLIC_TREASURY_PUBLIC_KEY ?? "",
 
   pinataJwt: process.env.PINATA_JWT ?? "",
-  pinataGateway: process.env.PINATA_GATEWAY ?? "https://gateway.pinata.cloud",
+  pinataGateway: url(process.env.PINATA_GATEWAY, "https://gateway.pinata.cloud"),
 
   tiktokClientKey: process.env.TIKTOK_CLIENT_KEY ?? "",
   tiktokClientSecret: process.env.TIKTOK_CLIENT_SECRET ?? "",
