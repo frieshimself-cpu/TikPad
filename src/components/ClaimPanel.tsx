@@ -1,123 +1,73 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Avatar } from "./Avatar";
 import { TokenImage } from "./TokenImage";
+import { Skeleton } from "./Skeleton";
 import { fmtSol, fmtUsd, short, timeAgo } from "@/lib/format";
-import type { Balance, LedgerRow, PayoutRow, TokenRow } from "@/lib/db";
+import { normalizeHandle } from "@/lib/handle";
+import { balanceFor, creditsFor, linkWallet, me, nextMilestoneCents, payoutsFor, signIn, signOut, tokensFor, useStore } from "@/lib/store";
 
-interface Me {
-  handle: string;
-  display_name: string | null;
-  avatar_url: string | null;
-  payout_wallet: string | null;
-  balance: Balance;
-  next_milestone_cents: number;
-  tokens: TokenRow[];
-  credits: LedgerRow[];
-  payouts: PayoutRow[];
-}
-
-export function ClaimPanel({ demoSignIn, initialError }: { demoSignIn: boolean; initialError?: string }) {
-  const [me, setMe] = useState<Me | null | undefined>(undefined);
-  const [demo, setDemo] = useState(false);
-  const [error, setError] = useState<string | null>(initialError ?? null);
+export function ClaimPanel() {
+  const state = useStore();
   const [handle, setHandle] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { publicKey } = useWallet();
 
-  const load = useCallback(async () => {
-    const r = await fetch("/api/me", { cache: "no-store" });
-    const j = (await r.json()) as { me: Me | null; demo: boolean };
-    setMe(j.me);
-    setDemo(j.demo);
-  }, []);
+  if (!state) return <Skeleton className="h-64" />;
+  const user = me(state);
 
-  useEffect(() => {
-    let alive = true;
-    fetch("/api/me", { cache: "no-store" })
-      .then((r) => r.json() as Promise<{ me: Me | null; demo: boolean }>)
-      .then((j) => {
-        if (!alive) return;
-        setMe(j.me);
-        setDemo(j.demo);
-      })
-      .catch(() => alive && setMe(null));
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  async function demoLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError(null);
-    const r = await fetch("/api/auth/demo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ handle }) });
-    const j = (await r.json()) as { error?: string };
-    setBusy(false);
-    if (!r.ok) return setError(j.error ?? "Sign-in failed");
-    await load();
-  }
-
-  async function linkWallet(wallet: string | null) {
-    setBusy(true);
-    setError(null);
-    const r = await fetch("/api/me/wallet", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wallet }) });
-    const j = (await r.json()) as { error?: string };
-    setBusy(false);
-    if (!r.ok) return setError(j.error ?? "Could not save wallet");
-    await load();
-  }
-
-  async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    setMe(null);
-  }
-
-  if (me === undefined) return <div className="card h-40 animate-pulse" />;
-
-  if (!me) {
+  if (!user) {
     return (
       <div className="card mx-auto max-w-md p-8 text-center">
         <h2 className="text-xl font-semibold">Claim what tokens have earned you</h2>
         <p className="mt-2 text-sm text-muted">Sign in with TikTok to prove you own the handle. Then link a Solana wallet and TikPad pays you at each milestone.</p>
+        <button className="btn btn-accent mt-6 w-full" onClick={() => setError("TikTok sign-in is not connected in this preview. Use the handle box below.")}>
+          <TikTokMark /> Continue with TikTok
+        </button>
+        <form
+          className="mt-6"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const h = normalizeHandle(handle);
+            if (!h) return setError("Enter a valid TikTok handle.");
+            setError(null);
+            signIn(h);
+          }}
+        >
+          <label className="label text-left" htmlFor="demo-handle">Preview sign-in: enter any handle</label>
+          <div className="flex gap-2">
+            <input id="demo-handle" className="input" value={handle} onChange={(e) => setHandle(e.target.value)} placeholder="khaby.lame" />
+            <button className="btn btn-primary">Continue</button>
+          </div>
+        </form>
         {error && <div className="mt-4 rounded-xl border border-rose/40 bg-rose/10 p-3 text-sm text-rose">{error}</div>}
-        {demoSignIn && demo ? (
-          <form onSubmit={demoLogin} className="mt-6">
-            <label className="label text-left" htmlFor="demo-handle">Demo sign-in: enter any handle</label>
-            <div className="flex gap-2">
-              <input id="demo-handle" className="input" value={handle} onChange={(e) => setHandle(e.target.value)} placeholder="khaby.lame" autoFocus />
-              <button className="btn btn-primary" disabled={busy}>Continue</button>
-            </div>
-            <p className="mt-3 text-xs text-dim">TikTok Login Kit is not configured, so ownership is not verified here.</p>
-          </form>
-        ) : (
-          <a href="/api/auth/tiktok" className="btn btn-accent mt-6 w-full">
-            <TikTokMark /> Continue with TikTok
-          </a>
-        )}
       </div>
     );
   }
 
-  const b = me.balance;
-  const toGo = Math.max(0, me.next_milestone_cents - (b.paid_cents + b.unpaid_cents));
-  const progress = Math.min(100, Math.round(((b.paid_cents + b.unpaid_cents) / me.next_milestone_cents) * 100));
+  const b = balanceFor(state, user.handle);
+  const tokens = tokensFor(state, user.handle);
+  const payouts = payoutsFor(state, user.handle);
+  const credits = creditsFor(state, user.handle).slice(0, 30);
+  const milestone = nextMilestoneCents(b.paid_cents);
+  const toGo = Math.max(0, milestone - (b.paid_cents + b.unpaid_cents));
+  const progress = Math.min(100, Math.round(((b.paid_cents + b.unpaid_cents) / milestone) * 100));
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
       <div className="space-y-6">
         <div className="card p-6">
           <div className="flex items-center gap-4">
-            <Avatar handle={me.handle} src={me.avatar_url} size={56} />
+            <Avatar handle={user.handle} src={user.avatar_url} size={56} />
             <div className="min-w-0 flex-1">
-              <div className="text-lg font-semibold">@{me.handle}</div>
-              <div className="text-sm text-muted">{me.display_name}</div>
+              <div className="text-lg font-semibold">@{user.handle}</div>
+              <div className="text-sm text-muted">{user.display_name}</div>
             </div>
-            <Link href={`/c/${me.handle}`} className="text-sm text-muted hover:text-fg">Public page →</Link>
-            <button onClick={logout} className="text-sm text-dim hover:text-fg">Sign out</button>
+            <Link href={`/c/${user.handle}`} className="text-sm text-muted hover:text-fg">Public page →</Link>
+            <button onClick={signOut} className="text-sm text-dim hover:text-fg">Sign out</button>
           </div>
           <dl className="mt-6 grid grid-cols-3 gap-3">
             <Metric k="Unpaid" v={fmtUsd(b.unpaid_cents)} s={fmtSol(b.unpaid_lamports)} accent />
@@ -126,102 +76,74 @@ export function ClaimPanel({ demoSignIn, initialError }: { demoSignIn: boolean; 
           </dl>
           <div className="mt-6">
             <div className="flex justify-between text-xs text-muted">
-              <span>Next payout at {fmtUsd(me.next_milestone_cents)} lifetime</span>
+              <span>Next payout at {fmtUsd(milestone)} lifetime</span>
               <span className="num">{toGo === 0 ? "ready" : `${fmtUsd(toGo)} to go`}</span>
             </div>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-elev">
               <div className="h-full rounded-full bg-cyan transition-all" style={{ width: `${progress}%` }} />
             </div>
             <p className="mt-2 text-xs text-dim">
-              {me.payout_wallet
-                ? "Payouts are sent automatically by the fee router once a milestone is crossed."
-                : "Link a wallet to receive payouts. Your balance keeps accruing either way."}
+              {user.payout_wallet ? "Payouts are sent automatically once a milestone is crossed." : "Link a wallet to receive payouts. Your balance keeps accruing either way."}
             </p>
           </div>
         </div>
 
-        <section className="card">
-          <h3 className="border-b border-line px-5 py-3 text-sm font-medium">Tokens routing to you</h3>
-          {me.tokens.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-dim">
-              No tokens yet. <Link href="/launch" className="underline">Launch one</Link> or ask your community to.
-            </p>
-          ) : (
-            <ul className="divide-y divide-line">
-              {me.tokens.map((t) => (
-                <li key={t.mint} className="flex items-center gap-3 px-5 py-3">
-                  <TokenImage src={t.image_url} symbol={t.symbol} size={36} />
-                  <div className="min-w-0 flex-1">
-                    <Link href={`/t/${t.mint}`} className="font-medium hover:underline">{t.name}</Link>
-                    <div className="num text-xs text-dim">${t.symbol} · {short(t.mint)}</div>
-                  </div>
-                  <span className="num text-xs text-dim">{timeAgo(t.created_at)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <Section title="Tokens routing to you" empty={tokens.length === 0 ? <>No tokens yet. <Link href="/launch" className="underline">Launch one</Link>.</> : null}>
+          {tokens.map((t) => (
+            <li key={t.mint} className="flex items-center gap-3 px-5 py-3">
+              <TokenImage src={t.image_url} symbol={t.symbol} size={36} />
+              <div className="min-w-0 flex-1">
+                <Link href={`/t/${t.mint}`} className="font-medium hover:underline">{t.name}</Link>
+                <div className="num text-xs text-dim">${t.symbol} · {short(t.mint)}</div>
+              </div>
+              <span className="num text-xs text-dim">{timeAgo(t.created_at)}</span>
+            </li>
+          ))}
+        </Section>
 
-        <section className="card">
-          <h3 className="border-b border-line px-5 py-3 text-sm font-medium">Payouts</h3>
-          {me.payouts.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-dim">No payouts yet.</p>
-          ) : (
-            <ul className="divide-y divide-line">
-              {me.payouts.map((p) => (
-                <li key={p.id} className="flex items-center justify-between px-5 py-3 text-sm">
-                  <div>
-                    <div className="num">{fmtUsd(p.usd_cents)} <span className="text-dim">· {fmtSol(p.lamports)}</span></div>
-                    <div className="num text-xs text-dim">to {short(p.wallet)} · {timeAgo(p.ts)}</div>
-                  </div>
-                  {p.demo ? <span className="pill pill-amber">demo</span> : (
-                    <a className="num text-xs text-cyan hover:underline" href={`https://solscan.io/tx/${p.sig}`} target="_blank" rel="noreferrer">{short(p.sig, 6)} ↗</a>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <Section title="Payouts" empty={payouts.length === 0 ? "No payouts yet." : null}>
+          {payouts.map((p) => (
+            <li key={p.id} className="flex items-center justify-between px-5 py-3 text-sm">
+              <div>
+                <div className="num">{fmtUsd(p.usd_cents)} <span className="text-dim">· {fmtSol(p.lamports)}</span></div>
+                <div className="num text-xs text-dim">to {short(p.wallet)} · {timeAgo(p.ts)}</div>
+              </div>
+              <span className="pill pill-amber">preview</span>
+            </li>
+          ))}
+        </Section>
 
-        <section className="card">
-          <h3 className="border-b border-line px-5 py-3 text-sm font-medium">Fee credits</h3>
-          {me.credits.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-dim">Fees show up here after each claim from pump.fun.</p>
-          ) : (
-            <ul className="divide-y divide-line">
-              {me.credits.map((c) => (
-                <li key={c.id} className="flex items-center justify-between px-5 py-3 text-sm">
-                  <div className="num text-xs text-dim">{c.mint ? <Link href={`/t/${c.mint}`} className="hover:text-fg">{short(c.mint)}</Link> : "—"} · {timeAgo(c.ts)}</div>
-                  <div className="num">{fmtUsd(c.usd_cents)} <span className="text-dim">· {fmtSol(c.lamports)}</span></div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <Section title="Fee credits" empty={credits.length === 0 ? "Fees show up here after each claim from pump.fun." : null}>
+          {credits.map((c) => (
+            <li key={c.id} className="flex items-center justify-between px-5 py-3 text-sm">
+              <div className="num text-xs text-dim">
+                <Link href={`/t/${c.mint}`} className="hover:text-fg">{short(c.mint)}</Link> · {timeAgo(c.ts)}
+              </div>
+              <div className="num">{fmtUsd(c.usd_cents)} <span className="text-dim">· {fmtSol(c.lamports)}</span></div>
+            </li>
+          ))}
+        </Section>
       </div>
 
       <aside className="space-y-4">
         <div className="card p-6">
           <h3 className="font-semibold">Payout wallet</h3>
-          {me.payout_wallet ? (
+          {user.payout_wallet ? (
             <>
-              <div className="num mt-3 break-all rounded-xl border border-line bg-elev p-3 text-xs">{me.payout_wallet}</div>
-              <button className="btn btn-ghost mt-3 w-full" onClick={() => linkWallet(null)} disabled={busy}>Unlink</button>
+              <div className="num mt-3 break-all rounded-xl border border-line bg-elev p-3 text-xs">{user.payout_wallet}</div>
+              <button className="btn btn-ghost mt-3 w-full" onClick={() => linkWallet(null)}>Unlink</button>
             </>
           ) : (
             <>
               <p className="mt-2 text-sm text-muted">Where should we send your SOL?</p>
               {publicKey ? (
-                <button className="btn btn-primary mt-4 w-full" onClick={() => linkWallet(publicKey.toBase58())} disabled={busy}>
-                  Use {short(publicKey.toBase58())}
-                </button>
+                <button className="btn btn-primary mt-4 w-full" onClick={() => linkWallet(publicKey.toBase58())}>Use {short(publicKey.toBase58())}</button>
               ) : (
                 <p className="mt-4 text-xs text-dim">Connect a wallet in the top bar, or paste an address below.</p>
               )}
-              <ManualWallet onSave={linkWallet} busy={busy} />
+              <ManualWallet onSave={(w) => linkWallet(w)} />
             </>
           )}
-          {error && <div className="mt-3 rounded-xl border border-rose/40 bg-rose/10 p-3 text-xs text-rose">{error}</div>}
         </div>
         <div className="card p-6 text-sm text-muted">
           <h3 className="font-semibold text-fg">How payouts work</h3>
@@ -236,18 +158,28 @@ export function ClaimPanel({ demoSignIn, initialError }: { demoSignIn: boolean; 
   );
 }
 
-function ManualWallet({ onSave, busy }: { onSave: (w: string) => void; busy: boolean }) {
+function Section({ title, empty, children }: { title: string; empty: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <section className="card">
+      <h3 className="border-b border-line px-5 py-3 text-sm font-medium">{title}</h3>
+      {empty ? <p className="px-5 py-8 text-center text-sm text-dim">{empty}</p> : <ul className="divide-y divide-line">{children}</ul>}
+    </section>
+  );
+}
+
+function ManualWallet({ onSave }: { onSave: (w: string) => void }) {
   const [v, setV] = useState("");
+  const valid = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(v.trim());
   return (
     <form
       className="mt-3 flex gap-2"
       onSubmit={(e) => {
         e.preventDefault();
-        if (v.trim()) onSave(v.trim());
+        if (valid) onSave(v.trim());
       }}
     >
       <input className="input num text-xs" value={v} onChange={(e) => setV(e.target.value)} placeholder="Solana address" />
-      <button className="btn btn-ghost" disabled={busy || !v.trim()}>Save</button>
+      <button className="btn btn-ghost" disabled={!valid}>Save</button>
     </form>
   );
 }

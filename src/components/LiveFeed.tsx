@@ -1,47 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Avatar } from "./Avatar";
 import { fmtSol, fmtUsd, timeAgo } from "@/lib/format";
-import type { FeedItem } from "@/lib/db";
+import { feed, startSimulation, stats, type FeedItem, type State } from "@/lib/store";
 
-interface Payload {
-  demo: boolean;
-  feed: FeedItem[];
-  stats: { tokens: number; creators: number; paid_cents: number; payouts: number; earned_cents: number };
-}
-
-export function LiveFeed({ initial, compact = false }: { initial: Payload; compact?: boolean }) {
-  const [data, setData] = useState(initial);
+export function LiveFeed({ state, compact = false }: { state: State; compact?: boolean }) {
+  const items = feed(state, compact ? 8 : 40);
+  const st = stats(state);
+  const seen = useRef<Set<string> | null>(null);
   const [fresh, setFresh] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    let alive = true;
-    const tick = async () => {
-      try {
-        const r = await fetch("/api/feed", { cache: "no-store" });
-        const j = (await r.json()) as Payload;
-        if (!alive) return;
-        setData((prev) => {
-          const seen = new Set(prev.feed.map(keyOf));
-          const next = new Set<string>();
-          for (const it of j.feed) if (!seen.has(keyOf(it))) next.add(keyOf(it));
-          if (next.size) setFresh(next);
-          return j;
-        });
-      } catch {
-        /* ignore */
-      }
-    };
-    const id = setInterval(tick, 8000);
-    return () => {
-      alive = false;
-      clearInterval(id);
-    };
-  }, []);
+  useEffect(() => startSimulation(), []);
 
-  const items = compact ? data.feed.slice(0, 8) : data.feed;
+  useEffect(() => {
+    if (!seen.current) {
+      seen.current = new Set(items.map((i) => i.id));
+      return;
+    }
+    const next = new Set<string>();
+    for (const it of items) if (!seen.current.has(it.id)) next.add(it.id);
+    if (next.size) {
+      for (const id of next) seen.current.add(id);
+      const t = setTimeout(() => setFresh(next), 0);
+      return () => clearTimeout(t);
+    }
+  }, [items]);
 
   return (
     <div className="card overflow-hidden">
@@ -50,19 +35,18 @@ export function LiveFeed({ initial, compact = false }: { initial: Payload; compa
           <span className="live-dot" />
           Live activity
         </div>
-        <span className="num text-xs text-dim">{data.stats.payouts} payouts · {fmtUsd(data.stats.paid_cents)} sent</span>
+        <span className="num text-xs text-dim">
+          {st.payouts} payouts · {fmtUsd(st.paid_cents)} sent
+        </span>
       </div>
       <ul className="divide-y divide-line">
         {items.length === 0 && <li className="px-4 py-8 text-center text-sm text-dim">Nothing yet. Launch the first token.</li>}
         {items.map((it) => (
-          <li key={keyOf(it)} className={`flex items-center gap-3 px-4 py-3 ${fresh.has(keyOf(it)) ? "feed-in" : ""}`}>
+          <li key={it.id} className={`flex items-center gap-3 px-4 py-3 ${fresh.has(it.id) ? "feed-in" : ""}`}>
             <Avatar handle={it.handle} size={32} />
             <div className="min-w-0 flex-1 text-sm">
               <FeedLine it={it} />
-              <div className="num mt-0.5 text-xs text-dim">
-                {timeAgo(it.ts)}
-                {it.demo ? " · demo" : ""}
-              </div>
+              <div className="num mt-0.5 text-xs text-dim">{timeAgo(it.ts)}</div>
             </div>
             <div className="num text-right text-sm">
               {it.kind === "launch" ? (
@@ -94,11 +78,5 @@ function FeedLine({ it }: { it: FeedItem }) {
   ) : null;
   if (it.kind === "payout") return <div className="truncate">Paid {who}</div>;
   if (it.kind === "launch") return <div className="truncate">{tok} launched for {who}</div>;
-  return (
-    <div className="truncate">
-      {tok} fees credited to {who}
-    </div>
-  );
+  return <div className="truncate">{tok} fees credited to {who}</div>;
 }
-
-const keyOf = (it: FeedItem) => `${it.kind}:${it.ref ?? ""}:${it.handle}:${it.ts}`;

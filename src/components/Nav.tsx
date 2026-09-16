@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Logo } from "./Logo";
 import { WalletButton } from "./WalletButton";
 
-export function Nav({ demo }: { demo: boolean }) {
+export function Nav() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
@@ -17,11 +17,9 @@ export function Nav({ demo }: { demo: boolean }) {
           </nav>
         </div>
         <div className="flex items-center gap-3">
-          {demo && (
-            <span className="pill pill-amber hidden sm:inline-flex" title="No treasury key configured: launches and payouts are simulated.">
-              Demo mode
-            </span>
-          )}
+          <span className="pill pill-amber hidden sm:inline-flex" title="Front-end preview: launches and payouts are simulated in your browser.">
+            Preview
+          </span>
           <Link href="/launch" className="btn btn-primary hidden h-10 sm:inline-flex">
             Launch a token
           </Link>

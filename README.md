@@ -11,53 +11,32 @@ Launch a token, point its creator fees at any TikTok `@handle`, and TikPad pays 
 3. **Attribution.** The fee router streams trades for all registered tokens, periodically claims creator fees, and splits each claim across tokens pro-rata by traded volume since the last claim. 80% of a token's share is credited to its TikTok handle, 20% stays with TikPad.
 4. **Payout.** The creator signs in with TikTok (Login Kit), which returns the verified username, then links any Solana address. Their unpaid balance is sent in SOL when lifetime earnings cross $5, $10, $20, $50, $100, $250, $500, $1,000 and every $1,000 after.
 
+## Current status: front end only
+
+This deployment is the front end. Every screen works, but launches, sign-in, fee claims and payouts are simulated in the browser (localStorage) so the whole flow can be explored with no wallet, keys or database. The real backend (on-chain launch through PumpPortal, fee router, TikTok Login Kit, database) is parked in [`backend/`](backend/README.md) and is not built or deployed.
+
 ## Deploy to Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ffrieshimself-cpu%2FTikPad%2Ftree%2Fclaude%2Fepic-knuth-yfpapk&project-name=tikpad&repository-name=tikpad
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ffrieshimself-cpu%2FTikPad&project-name=tikpad&repository-name=tikpad)
 
-No environment variables are needed. Import the repo in Vercel (or click the button) and you get the **demo**: sample data, simulated launches and payouts, nothing on chain. Because Vercel functions have no persistent disk, the demo uses an in-memory database that is re-seeded on each cold start.
+No environment variables, no database, no native modules. Import the repository and press Deploy.
 
-For anything persistent, add a free [Turso](https://turso.tech) database and set `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`. The fee router runs as a Vercel Cron (`vercel.json`, daily because Hobby plans allow no more; on Pro change it to `*/5 * * * *`). Set `CRON_SECRET` so only Vercel can call it, or hit `/api/cron/router` yourself, or run `npm run worker` elsewhere for trade streaming.
-
-## Running it
+## Running it locally
 
 ```bash
 npm install
-cp .env.example .env      # fill in what you have (see below)
-npm run dev               # web app + API on http://localhost:3000
-npm run worker            # fee router: streams trades, claims fees, attributes, pays
+npm run dev     # http://localhost:3000
 ```
-
-Without `TREASURY_SECRET_KEY` the app runs in **demo mode**: sample data is seeded, launches and payouts are simulated and flagged as demo, and nothing touches the chain. The worker fakes fee claims in demo mode so the UI stays alive.
-
-### Going live
-
-| Variable | Purpose |
-| --- | --- |
-| `TREASURY_SECRET_KEY` | Hot wallet that creates tokens and pays creators. Base58 or JSON byte array. Keep it funded with a little SOL for fees. |
-| `PINATA_JWT` | Uploads token images and metadata to IPFS (pump.fun no longer hosts metadata). |
-| `SOLANA_RPC_URL` | A dedicated RPC is strongly recommended over the public endpoint. |
-| `TIKTOK_CLIENT_KEY` / `TIKTOK_CLIENT_SECRET` | TikTok Login Kit app with scopes `user.info.basic` and `user.info.profile`; redirect URL `$NEXT_PUBLIC_APP_URL/api/auth/tiktok/callback`. Until set, a demo sign-in that does not verify ownership is used. |
-| `SESSION_SECRET` | Signs session cookies. |
-| `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | Hosted libsql database. Without it, a local file is used (or memory on Vercel). |
-| `CRON_SECRET` | Vercel sends it as a bearer token to `/api/cron/router`. Required for the cron outside demo mode. |
-
-Economics knobs (`CREATOR_SHARE_BPS`, `LAUNCH_FEE_LAMPORTS`, `LAUNCH_NETWORK_LAMPORTS`, milestones) are documented in `.env.example` and `src/lib/config.ts`.
 
 ## Layout
 
 ```
-src/app            pages + API routes (App Router)
-src/components     UI (landing feed, launch form, creator dashboard)
-src/lib/config.ts  env + constants, demo-mode switch
-src/lib/db.ts      SQLite schema and queries (libsql: local file, Turso, or memory)
-src/lib/launch.ts  quote → payment verification → IPFS → pump.fun create → dev-buy sweep
-src/lib/router.ts  fee attribution + milestone payouts
-src/lib/pumpportal.ts  PumpPortal trade-local (create, collectCreatorFee) + Pinata uploads
-src/lib/tiktok.ts  handle normalisation + Login Kit OAuth
-scripts/worker.ts  the fee router as a long-running process (trade streaming)
-src/app/api/cron/router  the same cycle as a Vercel Cron endpoint
-vercel.json        cron schedule
+src/app             pages (App Router)
+src/components      UI (landing feed, launch form, creator dashboard, token + creator views)
+src/lib/store.ts    browser-side state: seeded history, launches, sign-in, wallet, simulated claims + payouts
+src/lib/economics.ts  split and milestone constants
+src/lib/handle.ts   TikTok handle normalisation
+backend/            parked server code: database, launch orchestration, fee router, TikTok OAuth, worker
 ```
 
 ## Known limits
