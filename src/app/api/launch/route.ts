@@ -5,7 +5,7 @@ import { config } from "@/lib/config";
 import { executeLaunch } from "@/lib/launch";
 import { normalizeHandle } from "@/lib/tiktok";
 
-export const maxDuration = 120;
+export const maxDuration = 60;
 
 const Fields = z.object({
   quoteId: z.string().min(1),

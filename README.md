@@ -13,11 +13,11 @@ Launch a token, point its creator fees at any TikTok `@handle`, and TikPad pays 
 
 ## Deploy to Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ffrieshimself-cpu%2FTikPad%2Ftree%2Fclaude%2Fepic-knuth-yfpapk&project-name=tikpad&repository-name=tikpad&env=SESSION_SECRET&envDescription=Random%20string%20used%20to%20sign%20session%20cookies.%20Everything%20else%20is%20optional%20for%20the%20demo.&envLink=https%3A%2F%2Fgithub.com%2Ffrieshimself-cpu%2FTikPad%23going-live)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ffrieshimself-cpu%2FTikPad%2Ftree%2Fclaude%2Fepic-knuth-yfpapk&project-name=tikpad&repository-name=tikpad
 
-Zero configuration gets you the **demo**: sample data, simulated launches and payouts, nothing on chain. Because Vercel functions have no persistent disk, the demo uses an in-memory database that is re-seeded on each cold start.
+No environment variables are needed. Import the repo in Vercel (or click the button) and you get the **demo**: sample data, simulated launches and payouts, nothing on chain. Because Vercel functions have no persistent disk, the demo uses an in-memory database that is re-seeded on each cold start.
 
-For anything persistent, add a free [Turso](https://turso.tech) database and set `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`. The fee router runs as a Vercel Cron (`vercel.json`, hourly; set `CRON_SECRET` so only Vercel can call it). Hobby plans run crons once a day at most, so you can also hit `/api/cron/router` yourself or run `npm run worker` elsewhere for trade streaming.
+For anything persistent, add a free [Turso](https://turso.tech) database and set `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`. The fee router runs as a Vercel Cron (`vercel.json`, daily because Hobby plans allow no more; on Pro change it to `*/5 * * * *`). Set `CRON_SECRET` so only Vercel can call it, or hit `/api/cron/router` yourself, or run `npm run worker` elsewhere for trade streaming.
 
 ## Running it
 
