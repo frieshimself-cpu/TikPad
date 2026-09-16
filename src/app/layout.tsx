@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Bricolage_Grotesque, IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
-import { Nav } from "@/components/Nav";
+import { Sidebar } from "@/components/Sidebar";
+import { Ticker } from "@/components/Ticker";
 import { Footer } from "@/components/Footer";
 
 const display = Bricolage_Grotesque({ variable: "--font-display-face", subsets: ["latin"], weight: ["600", "700", "800"] });
@@ -17,11 +18,16 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full">
         <Providers>
-          <Nav />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <div className="lg:grid lg:grid-cols-[240px_1fr]">
+            <Sidebar />
+            <div className="flex min-h-screen min-w-0 flex-col">
+              <Ticker />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+          </div>
         </Providers>
       </body>
     </html>

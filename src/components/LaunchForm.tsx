@@ -94,7 +94,7 @@ export function LaunchForm({ initialHandle = "" }: { initialHandle?: string }) {
   }
 
   return (
-    <form onSubmit={submit} className="grid gap-8 lg:grid-cols-[1fr_360px]">
+    <form onSubmit={submit} className="pb-32">
       <div className="card p-6 sm:p-8">
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
@@ -161,41 +161,35 @@ export function LaunchForm({ initialHandle = "" }: { initialHandle?: string }) {
         </div>
       </div>
 
-      <aside className="flex flex-col gap-4">
-        <div className="card p-6">
-          <h3 className="font-semibold">Summary</h3>
-          <dl className="num mt-4 space-y-2 text-sm">
+      {error && <div className="mt-4 rounded-md border border-rose/40 bg-rose/10 p-4 text-sm text-rose">{error}</div>}
+
+      {/* Sticky summary bar */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-fg bg-card lg:left-[240px]">
+        <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4 sm:px-10">
+          <dl className="num flex flex-wrap gap-x-8 gap-y-1 text-sm">
             <Row k="Dev buy" v={fmtSol(devBuyNum * 1e9)} />
-            <Row k="Network + creation" v={fmtSol(NETWORK_LAMPORTS)} />
-            <Row k="TikPad fee" v={fmtSol(0)} />
-            <div className="border-t border-line pt-2">
-              <Row k="You pay" v={fmtSol(devBuyNum * 1e9 + NETWORK_LAMPORTS)} strong />
-            </div>
+            <Row k="Network" v={fmtSol(NETWORK_LAMPORTS)} />
+            <Row k="You pay" v={fmtSol(devBuyNum * 1e9 + NETWORK_LAMPORTS)} strong />
           </dl>
-          <p className="mt-4 text-xs leading-relaxed text-dim">
-            Payment goes to the TikPad treasury, which creates the token as its on-chain creator so every creator fee routes through it.
-          </p>
+          <div className="flex items-center gap-4">
+            <span className="hidden text-xs text-muted sm:block">
+              80% of fees to @{cleanHandle || "handle"} · <Link href="/docs" className="underline">details</Link>
+            </span>
+            <button type="submit" className="btn btn-primary h-12 px-6 text-base" disabled={!canSubmit}>
+              {busy ? "Creating token…" : "Launch (preview)"}
+            </button>
+          </div>
         </div>
-
-        {error && <div className="rounded-xl border border-rose/40 bg-rose/10 p-4 text-sm text-rose">{error}</div>}
-
-        <button type="submit" className="btn btn-primary h-12 w-full text-base" disabled={!canSubmit}>
-          {busy ? "Creating token…" : "Launch (preview)"}
-        </button>
-        <p className="text-center text-xs text-amber">Preview: no wallet or SOL needed, nothing is sent on chain.</p>
-        <p className="text-center text-xs text-dim">
-          80% of creator fees go to @{cleanHandle || "handle"}, 20% to TikPad. <Link href="/docs" className="underline">Details</Link>
-        </p>
-      </aside>
+      </div>
     </form>
   );
 }
 
 function Row({ k, v, strong }: { k: string; v: string; strong?: boolean }) {
   return (
-    <div className="flex justify-between">
+    <div className="flex gap-2">
       <dt className="text-muted">{k}</dt>
-      <dd className={strong ? "font-semibold" : ""}>{v}</dd>
+      <dd className={strong ? "font-bold" : ""}>{v}</dd>
     </div>
   );
 }

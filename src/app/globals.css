@@ -270,3 +270,24 @@ textarea.input {
   background-size: 32px 32px;
   background-position: center top;
 }
+
+@keyframes ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-33.333%);
+  }
+}
+.ticker {
+  animation: ticker 40s linear infinite;
+}
+.ticker:hover {
+  animation-play-state: paused;
+}
+.rail {
+  scrollbar-width: none;
+}
+.rail::-webkit-scrollbar {
+  display: none;
+}

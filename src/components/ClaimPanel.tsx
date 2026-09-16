@@ -57,8 +57,8 @@ export function ClaimPanel() {
   const progress = Math.min(100, Math.round(((b.paid_cents + b.unpaid_cents) / milestone) * 100));
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-      <div className="space-y-6">
+    <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+      <div className="order-2 space-y-6 lg:order-2">
         <div className="card p-6">
           <div className="flex items-center gap-4">
             <Avatar handle={user.handle} src={user.avatar_url} size={56} />
@@ -125,7 +125,7 @@ export function ClaimPanel() {
         </Section>
       </div>
 
-      <aside className="space-y-4">
+      <aside className="order-1 space-y-4 lg:order-1">
         <div className="card p-6">
           <h3 className="font-semibold">Payout wallet</h3>
           {user.payout_wallet ? (

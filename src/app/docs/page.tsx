@@ -7,7 +7,7 @@ export const metadata = { title: "Docs — TikPad" };
 
 export default function DocsPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+    <div className="max-w-3xl px-6 py-12 sm:px-10">
       <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">How TikPad works</h1>
       <p className="mt-3 text-muted">
         TikPad turns pump.fun creator fees into payouts for TikTok creators. The creator does not need an account, a wallet, or to know the
