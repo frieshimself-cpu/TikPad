@@ -2,18 +2,20 @@
 @import "@solana/wallet-adapter-react-ui/styles.css";
 
 :root {
-  --bg: #f6f2ea;
-  --bg-elev: #efe9dd;
-  --bg-card: #fffdf8;
-  --line: #e2dccf;
-  --line-strong: #c9c1b0;
-  --fg: #141210;
-  --fg-muted: #5f594f;
-  --fg-dim: #948c7e;
+  --bg: #f7f5ef;
+  --bg-elev: #efece3;
+  --bg-card: #ffffff;
+  --line: #e6e2d8;
+  --line-strong: #cfc9bb;
+  --fg: #131210;
+  --fg-muted: #66605a;
+  --fg-dim: #9a938a;
   --cyan: #6d28d9;
-  --rose: #ff3d00;
-  --green: #1f8a4c;
+  --rose: #e11d48;
+  --green: #15803d;
   --amber: #b45309;
+  --lime: #d9f99d;
+  --violet-soft: #ede9fe;
 }
 
 @theme inline {
@@ -64,8 +66,8 @@ h1, h2, h3 {
 .card {
   background: var(--bg-card);
   border: 1px solid var(--line);
-  border-radius: 6px;
-  box-shadow: 0 1px 0 rgb(20 18 16 / 0.04), 0 8px 24px -16px rgb(20 18 16 / 0.25);
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgb(19 18 16 / 0.04), 0 12px 32px -20px rgb(19 18 16 / 0.18);
 }
 
 .btn {
@@ -75,11 +77,10 @@ h1, h2, h3 {
   gap: 0.5rem;
   height: 44px;
   padding: 0 1.1rem;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.925rem;
+  letter-spacing: -0.005em;
   transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.05s;
   white-space: nowrap;
 }
@@ -93,24 +94,25 @@ h1, h2, h3 {
 }
 .btn-primary {
   background: var(--fg);
-  color: #f6f2ea;
-  box-shadow: 3px 3px 0 var(--cyan);
+  color: #fff;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.1) inset, 0 8px 20px -10px rgb(19 18 16 / 0.6);
 }
 .btn-primary:hover:not(:disabled) {
   background: #000;
-  box-shadow: 4px 4px 0 var(--cyan);
+  transform: translateY(-1px);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.1) inset, 0 12px 24px -10px rgb(19 18 16 / 0.6);
 }
 .btn-accent {
-  background: #d9f99d;
-  color: #141210;
-  border: 1px solid var(--fg);
-  box-shadow: 3px 3px 0 var(--fg);
+  background: var(--lime);
+  color: var(--fg);
+  box-shadow: 0 8px 20px -10px rgb(132 204 22 / 0.8);
 }
 .btn-accent:hover:not(:disabled) {
-  background: #bef264;
+  background: #c9f57a;
+  transform: translateY(-1px);
 }
 .btn-ghost {
-  background: transparent;
+  background: var(--bg-card);
   color: var(--fg);
   border: 1px solid var(--line-strong);
 }
@@ -123,9 +125,9 @@ h1, h2, h3 {
   width: 100%;
   height: 44px;
   padding: 0 0.9rem;
-  border-radius: 6px;
-  background: var(--bg-elev);
-  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--line-strong);
   color: var(--fg);
   font-size: 0.95rem;
   outline: none;
@@ -146,11 +148,9 @@ textarea.input {
 
 .label {
   display: block;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--fg-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--fg);
   margin-bottom: 0.4rem;
 }
 
@@ -160,19 +160,19 @@ textarea.input {
   gap: 0.35rem;
   height: 24px;
   padding: 0 0.6rem;
-  border-radius: 4px;
-  font-size: 0.68rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  border: 1px solid var(--fg);
-  color: var(--fg);
+  border: 1px solid var(--line-strong);
+  color: var(--fg-muted);
   background: var(--bg-card);
 }
 .pill-cyan {
-  border-color: var(--cyan);
-  color: #fff;
-  background: var(--cyan);
+  border-color: transparent;
+  color: var(--cyan);
+  background: var(--violet-soft);
 }
 .pill-rose {
   border-color: var(--rose);
@@ -180,28 +180,26 @@ textarea.input {
   background: var(--rose);
 }
 .pill-green {
-  border-color: var(--green);
-  color: #fff;
-  background: var(--green);
+  border-color: transparent;
+  color: var(--green);
+  background: #dcfce7;
 }
 .pill-amber {
-  border-color: var(--fg);
-  color: var(--fg);
-  background: #d9f99d;
+  border-color: transparent;
+  color: #3f6212;
+  background: var(--lime);
 }
 }
 
 /* Wallet adapter button restyle */
 .wallet-adapter-button {
   height: 40px !important;
-  border-radius: 6px !important;
+  border-radius: 10px !important;
   font-family: var(--font-sans) !important;
-  font-size: 0.8rem !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.04em !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
   background: var(--bg-card) !important;
-  border: 1px solid var(--fg) !important;
+  border: 1px solid var(--line-strong) !important;
   color: var(--fg) !important;
   padding: 0 0.9rem !important;
   line-height: 1 !important;
@@ -214,8 +212,8 @@ textarea.input {
 }
 .wallet-adapter-modal-wrapper {
   background: var(--bg-card) !important;
-  border: 1px solid var(--fg) !important;
-  border-radius: 6px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 14px !important;
   color: var(--fg) !important;
 }
 .wallet-adapter-modal-title { color: var(--fg) !important; }
@@ -264,11 +262,59 @@ textarea.input {
 }
 
 .glow {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(900px 420px at 15% -10%, rgb(217 249 157 / 0.55), transparent 60%),
+    radial-gradient(800px 420px at 90% 0%, rgb(237 233 254 / 0.9), transparent 60%),
+    var(--bg);
+}
+.glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
   background-image:
-    linear-gradient(rgb(20 18 16 / 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(20 18 16 / 0.05) 1px, transparent 1px);
-  background-size: 32px 32px;
-  background-position: center top;
+    linear-gradient(rgb(19 18 16 / 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(19 18 16 / 0.045) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  pointer-events: none;
+}
+.glow > * {
+  position: relative;
+}
+
+.eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+
+@keyframes float-a {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-10px) rotate(-2deg); }
+}
+@keyframes float-b {
+  0%, 100% { transform: translateY(0) rotate(3deg); }
+  50% { transform: translateY(-14px) rotate(3deg); }
+}
+@keyframes float-c {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.float-a { animation: float-a 6s ease-in-out infinite; }
+.float-b { animation: float-b 7s ease-in-out infinite; }
+.float-c { animation: float-c 5s ease-in-out infinite; }
+
+.lift {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 1px 2px rgb(19 18 16 / 0.04), 0 20px 40px -22px rgb(19 18 16 / 0.28);
+  border-color: var(--line-strong);
 }
 
 @keyframes ticker {

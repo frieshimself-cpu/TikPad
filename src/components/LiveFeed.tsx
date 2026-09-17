@@ -3,11 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Avatar } from "./Avatar";
+import { TokenImage } from "./TokenImage";
 import { fmtSol, fmtUsd, timeAgo } from "@/lib/format";
-import { feed, startSimulation, stats, type FeedItem, type State } from "@/lib/store";
+import { feed, getToken, startSimulation, stats, type FeedItem, type State } from "@/lib/store";
 
 export function LiveFeed({ state, compact = false }: { state: State; compact?: boolean }) {
-  const items = feed(state, compact ? 8 : 40);
+  const items = feed(state, compact ? 8 : 30);
   const st = stats(state);
   const seen = useRef<Set<string> | null>(null);
   const [fresh, setFresh] = useState<Set<string>>(new Set());
@@ -30,36 +31,48 @@ export function LiveFeed({ state, compact = false }: { state: State; compact?: b
 
   return (
     <div className="card overflow-hidden">
-      <div className="flex items-center justify-between border-b border-line px-4 py-3">
-        <div className="flex items-center gap-2 text-sm font-medium">
+      <div className="flex items-center justify-between border-b border-line bg-bg/60 px-5 py-3">
+        <div className="flex items-center gap-2 text-sm font-semibold">
           <span className="live-dot" />
-          Live activity
+          Live
         </div>
         <span className="num text-xs text-dim">
           {st.payouts} payouts · {fmtUsd(st.paid_cents)} sent
         </span>
       </div>
       <ul className="divide-y divide-line">
-        {items.length === 0 && <li className="px-4 py-8 text-center text-sm text-dim">Nothing yet. Launch the first token.</li>}
-        {items.map((it) => (
-          <li key={it.id} className={`flex items-center gap-3 px-4 py-3 ${fresh.has(it.id) ? "feed-in" : ""}`}>
-            <Avatar handle={it.handle} size={32} />
-            <div className="min-w-0 flex-1 text-sm">
-              <FeedLine it={it} />
-              <div className="num mt-0.5 text-xs text-dim">{timeAgo(it.ts)}</div>
-            </div>
-            <div className="num text-right text-sm">
-              {it.kind === "launch" ? (
-                <span className="pill pill-cyan">launched</span>
-              ) : (
-                <>
-                  <div className={it.kind === "payout" ? "text-green" : "text-fg"}>{fmtUsd(it.usd_cents)}</div>
-                  <div className="text-xs text-dim">{fmtSol(it.lamports)}</div>
-                </>
-              )}
-            </div>
-          </li>
-        ))}
+        {items.length === 0 && <li className="px-5 py-10 text-center text-sm text-dim">Nothing yet. Launch the first token.</li>}
+        {items.map((it) => {
+          const tok = it.mint ? getToken(state, it.mint) : undefined;
+          return (
+            <li key={it.id} className={`flex items-center gap-4 px-5 py-3.5 transition hover:bg-bg/60 ${fresh.has(it.id) ? "feed-in" : ""}`}>
+              <div className="relative shrink-0">
+                {tok ? <TokenImage src={tok.image_url} symbol={tok.symbol} size={40} /> : <Avatar handle={it.handle} size={40} />}
+                <span
+                  className={`absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-card text-[10px] text-white ${
+                    it.kind === "payout" ? "bg-green" : it.kind === "launch" ? "bg-cyan" : "bg-fg"
+                  }`}
+                >
+                  {it.kind === "payout" ? "$" : it.kind === "launch" ? "↑" : "+"}
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <FeedLine it={it} />
+                <div className="num mt-0.5 text-xs text-dim">{timeAgo(it.ts)}</div>
+              </div>
+              <div className="num text-right">
+                {it.kind === "launch" ? (
+                  <span className="pill pill-cyan">launched</span>
+                ) : (
+                  <>
+                    <div className={`font-semibold ${it.kind === "payout" ? "text-green" : ""}`}>{fmtUsd(it.usd_cents)}</div>
+                    <div className="text-xs text-dim">{fmtSol(it.lamports)}</div>
+                  </>
+                )}
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
@@ -67,16 +80,20 @@ export function LiveFeed({ state, compact = false }: { state: State; compact?: b
 
 function FeedLine({ it }: { it: FeedItem }) {
   const who = (
-    <Link href={`/c/${it.handle}`} className="font-medium hover:underline">
+    <Link href={`/c/${it.handle}`} className="font-semibold hover:underline">
       @{it.handle}
     </Link>
   );
   const tok = it.mint ? (
-    <Link href={`/t/${it.mint}`} className="num text-muted hover:text-fg hover:underline">
+    <Link href={`/t/${it.mint}`} className="num font-semibold text-cyan hover:underline">
       ${it.symbol ?? "?"}
     </Link>
   ) : null;
-  if (it.kind === "payout") return <div className="truncate">Paid {who}</div>;
-  if (it.kind === "launch") return <div className="truncate">{tok} launched for {who}</div>;
-  return <div className="truncate">{tok} fees credited to {who}</div>;
+  if (it.kind === "payout") return <div className="truncate text-sm">Paid out to {who}</div>;
+  if (it.kind === "launch") return <div className="truncate text-sm">{tok} launched for {who}</div>;
+  return (
+    <div className="truncate text-sm">
+      {tok} fees credited to {who}
+    </div>
+  );
 }
