@@ -5,5 +5,5 @@ export const MILESTONE_STEP_CENTS = 100000;
 export const SOL_USD = 150;
 
 /** The TikPad token contract address on pump.fun. */
-export const TIKPAD_CA = "5MFQ51uaYcnvbRqHKT72kkyWxN6r7B759Rn9GMhFpump";
+export const TIKPAD_CA = "9Y25kQCdgpk8zLuEwo4W8RjWwBiuRkzK9QTjH165pump";
 export const TIKPAD_PUMP_URL = `https://pump.fun/coin/${TIKPAD_CA}`;
