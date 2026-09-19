@@ -36,7 +36,7 @@ export function HeroArt() {
           </div>
         </div>
       </div>
-      <div className="float-b absolute -left-8 bottom-24 hidden rounded-2xl border border-line bg-card px-4 py-3 shadow-lg xl:block">
+      <div className="float-b absolute -bottom-6 -left-8 hidden rounded-2xl border border-line bg-card px-4 py-3 shadow-lg xl:block">
         <div className="text-xs text-muted">Creator fees today</div>
         <div className="num font-bold text-[#0096d6]">+0.41 SOL</div>
       </div>
