@@ -10,9 +10,9 @@ import { fmtUsd } from "@/lib/format";
 import { leaderboard, stats, useStore } from "@/lib/store";
 
 const STEPS = [
-  ["Launch", "Name, ticker, image, and the TikTok @handle that should get paid. TikPad creates the token on pump.fun with its treasury as the on-chain creator.", "M5 19 19 5M9 5h10v10"],
-  ["Fees accrue", "Every pump.fun trade pays a creator fee. The treasury is the creator, so the fees land with TikPad and are attributed to the token that produced them.", "M4 17l5-5 4 4 7-8M15 8h5v5"],
-  ["Creator gets paid", "80% of every claim is credited to the handle. Once it crosses $5, then $10, $20, $50 and up, it's sent to the wallet the creator linked with a TikTok sign-in.", "M12 3v18M7 8h7a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h8"],
+  ["Launch", "Name, ticker, image, and the OnlyFans username that should get paid. FansPad creates the token on pump.fun with its treasury as the on-chain creator.", "M5 19 19 5M9 5h10v10"],
+  ["Fees accrue", "Every pump.fun trade pays a creator fee. The treasury is the creator, so the fees land with FansPad and are attributed to the token that produced them.", "M4 17l5-5 4 4 7-8M15 8h5v5"],
+  ["Creator gets paid", "80% of every claim is credited to the handle. Once it crosses $5, then $10, $20, $50 and up, it's sent to the wallet the creator linked after verifying their OnlyFans profile.", "M12 3v18M7 8h7a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h8"],
 ];
 
 export function HomeView() {
@@ -26,13 +26,13 @@ export function HomeView() {
       <section className="glow border-b border-line px-6 pb-16 pt-14 sm:px-10 lg:pt-20">
         <div className="grid items-center gap-12 xl:grid-cols-[1.05fr_0.95fr]">
           <div>
-            <span className="pill pill-cyan">pump.fun · Solana · TikTok</span>
+            <span className="pill pill-cyan">pump.fun · Solana · OnlyFans</span>
             <h1 className="mt-6 max-w-2xl text-5xl font-extrabold leading-[0.98] tracking-tight sm:text-6xl 2xl:text-7xl">
-              Token fees, paid straight to <span className="relative inline-block px-2"><span className="absolute inset-0 -rotate-1 rounded-lg bg-[#d9f99d]" aria-hidden /><span className="relative">TikTok</span></span> creators.
+              Token fees, paid straight to <span className="relative inline-block px-2"><span className="absolute inset-0 -rotate-1 rounded-lg bg-[#fbcfe8]" aria-hidden /><span className="relative">OnlyFans</span></span> creators.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
-              Launch a token, point its creator fees at any TikTok handle, and TikPad pays the creator automatically. They don&apos;t need an
-              account until they want to collect.
+              Launch a token, point its creator fees at any OnlyFans handle, and FansPad pays the creator automatically. They don&apos;t need to do
+              anything until they want to collect.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/launch" className="btn btn-primary h-12 px-6 text-base">Launch a token</Link>
@@ -78,7 +78,7 @@ export function HomeView() {
             {STEPS.map(([t, d, icon], i) => (
               <li key={t} className="card lift p-5">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ede9fe] text-cyan">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e0f2fe] text-cyan">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                       <path d={icon} />
                     </svg>
@@ -127,12 +127,12 @@ export function HomeView() {
       {/* CTA band */}
       <section className="px-6 py-14 sm:px-10">
         <div className="relative overflow-hidden rounded-3xl bg-fg px-8 py-12 text-white sm:px-12">
-          <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#6d28d9] opacity-60 blur-3xl" aria-hidden />
-          <div className="absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-[#d9f99d] opacity-40 blur-3xl" aria-hidden />
+          <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#db2777] opacity-60 blur-3xl" aria-hidden />
+          <div className="absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-[#fbcfe8] opacity-40 blur-3xl" aria-hidden />
           <div className="relative flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
             <div>
               <h3 className="text-3xl font-bold">Is a token paying you?</h3>
-              <p className="mt-2 max-w-lg text-white/70">Sign in with TikTok, link a Solana wallet, and everything credited to your handle is sent to you.</p>
+              <p className="mt-2 max-w-lg text-white/70">Verify your OnlyFans profile, link a Solana wallet, and everything credited to your username is sent to you.</p>
             </div>
             <Link href="/claim" className="btn btn-accent h-12 px-6 text-base">Claim your earnings</Link>
           </div>

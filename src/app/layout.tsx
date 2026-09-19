@@ -11,8 +11,8 @@ const body = IBM_Plex_Sans({ variable: "--font-body", subsets: ["latin"], weight
 const mono = JetBrains_Mono({ variable: "--font-mono-face", subsets: ["latin"], weight: ["400", "600"] });
 
 export const metadata: Metadata = {
-  title: "TikPad — Route token fees to TikTok creators",
-  description: "Launch a token on pump.fun, point its creator fees at any TikTok handle, and TikPad pays the creator out automatically.",
+  title: "FansPad — Route token fees to OnlyFans creators",
+  description: "Launch a token on pump.fun, point its creator fees at any OnlyFans handle, and FansPad pays the creator out automatically.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

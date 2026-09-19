@@ -10,12 +10,12 @@
   --fg: #131210;
   --fg-muted: #66605a;
   --fg-dim: #9a938a;
-  --cyan: #6d28d9;
+  --cyan: #db2777;
   --rose: #e11d48;
   --green: #15803d;
   --amber: #b45309;
-  --lime: #d9f99d;
-  --violet-soft: #ede9fe;
+  --lime: #fbcfe8;
+  --violet-soft: #e0f2fe;
 }
 
 @theme inline {
@@ -53,7 +53,7 @@ h1, h2, h3 {
 }
 
 ::selection {
-  background: #d9f99d;
+  background: #fbcfe8;
   color: #141210;
 }
 
@@ -105,10 +105,10 @@ h1, h2, h3 {
 .btn-accent {
   background: var(--lime);
   color: var(--fg);
-  box-shadow: 0 8px 20px -10px rgb(132 204 22 / 0.8);
+  box-shadow: 0 8px 20px -10px rgb(219 39 119 / 0.8);
 }
 .btn-accent:hover:not(:disabled) {
-  background: #c9f57a;
+  background: #f9a8d4;
   transform: translateY(-1px);
 }
 .btn-ghost {
@@ -135,7 +135,7 @@ h1, h2, h3 {
 }
 .input:focus {
   border-color: var(--cyan);
-  box-shadow: 0 0 0 3px rgb(109 40 217 / 0.18);
+  box-shadow: 0 0 0 3px rgb(219 39 119 / 0.18);
 }
 .input::placeholder {
   color: var(--fg-dim);
@@ -186,7 +186,7 @@ textarea.input {
 }
 .pill-amber {
   border-color: transparent;
-  color: #3f6212;
+  color: #9d174d;
   background: var(--lime);
 }
 }
@@ -265,8 +265,8 @@ textarea.input {
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(900px 420px at 15% -10%, rgb(217 249 157 / 0.55), transparent 60%),
-    radial-gradient(800px 420px at 90% 0%, rgb(237 233 254 / 0.9), transparent 60%),
+    radial-gradient(900px 420px at 15% -10%, rgb(251 207 232 / 0.55), transparent 60%),
+    radial-gradient(800px 420px at 90% 0%, rgb(224 242 254 / 0.9), transparent 60%),
     var(--bg);
 }
 .glow::before {

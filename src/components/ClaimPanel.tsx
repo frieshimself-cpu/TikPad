@@ -23,23 +23,23 @@ export function ClaimPanel() {
     return (
       <div className="card mx-auto max-w-md p-8 text-center">
         <h2 className="text-xl font-semibold">Claim what tokens have earned you</h2>
-        <p className="mt-2 text-sm text-muted">Sign in with TikTok to prove you own the handle. Then link a Solana wallet and TikPad pays you at each milestone.</p>
-        <button className="btn btn-accent mt-6 w-full" onClick={() => setError("TikTok sign-in is not connected in this preview. Use the handle box below.")}>
-          <TikTokMark /> Continue with TikTok
+        <p className="mt-2 text-sm text-muted">Prove you own the OnlyFans username, link a Solana wallet, and FansPad pays you at each milestone.</p>
+        <button className="btn btn-accent mt-6 w-full" onClick={() => setError("OnlyFans has no public login. In the real product you would verify ownership by adding a code to your OnlyFans bio. Use the box below to preview.")}>
+          <OnlyFansMark /> Verify my OnlyFans
         </button>
         <form
           className="mt-6"
           onSubmit={(e) => {
             e.preventDefault();
             const h = normalizeHandle(handle);
-            if (!h) return setError("Enter a valid TikTok handle.");
+            if (!h) return setError("Enter a valid OnlyFans handle.");
             setError(null);
             signIn(h);
           }}
         >
           <label className="label text-left" htmlFor="demo-handle">Preview sign-in: enter any handle</label>
           <div className="flex gap-2">
-            <input id="demo-handle" className="input" value={handle} onChange={(e) => setHandle(e.target.value)} placeholder="khaby.lame" />
+            <input id="demo-handle" className="input" value={handle} onChange={(e) => setHandle(e.target.value)} placeholder="lunavale" />
             <button className="btn btn-primary">Continue</button>
           </div>
         </form>
@@ -148,7 +148,7 @@ export function ClaimPanel() {
         <div className="card p-6 text-sm text-muted">
           <h3 className="font-semibold text-fg">How payouts work</h3>
           <ul className="mt-3 list-disc space-y-1.5 pl-4 text-xs leading-relaxed">
-            <li>Every pump.fun creator-fee claim is split: 80% to you, 20% to TikPad.</li>
+            <li>Every pump.fun creator-fee claim is split: 80% to you, 20% to FansPad.</li>
             <li>Your share is paid when lifetime earnings cross $5, $10, $20, $50, $100, $250, $500, $1,000, then every $1,000.</li>
             <li>Payouts are in SOL, sent on Solana to the wallet above.</li>
           </ul>
@@ -194,10 +194,10 @@ function Metric({ k, v, s, accent }: { k: string; v: string; s: string; accent?:
   );
 }
 
-function TikTokMark() {
+function OnlyFansMark() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M12.5 2h3.1c.2 2 1.5 3.6 3.6 3.8v3.1c-1.4 0-2.6-.4-3.6-1.1v6.2A5.4 5.4 0 1 1 10.2 8.6h.6v3.2h-.6a2.2 2.2 0 1 0 2.3 2.2V2Z" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 21s-7-4.6-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.4-7 10-7 10Z" />
     </svg>
   );
 }

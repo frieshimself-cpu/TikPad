@@ -11,7 +11,7 @@
 import { useSyncExternalStore } from "react";
 import { feeTag } from "./handle";
 import { CREATOR_SHARE_BPS, MILESTONES_CENTS, MILESTONE_STEP_CENTS, SOL_USD } from "./economics";
-const STORAGE_KEY = "tikpad-preview-v1";
+const STORAGE_KEY = "fanspad-preview-v1";
 const TICK_MS = 20_000;
 
 export interface Token {
@@ -79,25 +79,26 @@ const cents = (lamports: number) => Math.round((lamports / 1e9) * SOL_USD * 100)
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 /* ---------------- seed ---------------- */
+// Fictional handles for the preview. Not real creators.
 const SEED_CREATORS = [
-  ["khaby.lame", "Khaby Lame"],
-  ["charlidamelio", "charli d'amelio"],
-  ["mrbeast", "MrBeast"],
-  ["bellapoarch", "Bella Poarch"],
-  ["zachking", "Zach King"],
-  ["addisonre", "Addison Rae"],
-  ["spencerx", "Spencer X"],
-  ["gordonramsayofficial", "Gordon Ramsay"],
+  ["lunavale", "Luna Vale"],
+  ["mia.rosee", "Mia Rose"],
+  ["kenzieblake", "Kenzie Blake"],
+  ["sophiexo", "Sophie"],
+  ["ivy.lane", "Ivy Lane"],
+  ["noahwilde", "Noah Wilde"],
+  ["aria_moon", "Aria Moon"],
+  ["jade.vip", "Jade"],
 ] as const;
 const SEED_TOKENS = [
-  ["Khaby Coin", "KHABY", "khaby.lame"],
-  ["Charli", "CHARLI", "charlidamelio"],
-  ["Beast Mode", "BEAST", "mrbeast"],
-  ["Build a B", "BELLA", "bellapoarch"],
-  ["Zach Magic", "MAGIC", "zachking"],
-  ["Addison", "ADDI", "addisonre"],
-  ["Beatbox", "BEAT", "spencerx"],
-  ["Idiot Sandwich", "RAMSAY", "gordonramsayofficial"],
+  ["Luna Coin", "LUNA", "lunavale"],
+  ["Rose", "ROSE", "mia.rosee"],
+  ["Kenzie", "KENZ", "kenzieblake"],
+  ["Sophie XO", "XO", "sophiexo"],
+  ["Ivy", "IVY", "ivy.lane"],
+  ["Wilde", "WILDE", "noahwilde"],
+  ["Moonlight", "MOON", "aria_moon"],
+  ["Jade VIP", "JADE", "jade.vip"],
 ] as const;
 
 function seed(now: number): State {

@@ -84,7 +84,7 @@ export function LaunchForm({ initialHandle = "" }: { initialHandle?: string }) {
         <div className="num mt-6 break-all rounded-xl border border-line bg-elev p-3 text-xs text-muted">{result.mint}</div>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link href={`/t/${result.mint}`} className="btn btn-primary">View token page</Link>
-          <a className="btn btn-ghost" target="_blank" rel="noreferrer" href={`https://www.tiktok.com/@${result.recipient_handle}`}>
+          <a className="btn btn-ghost" target="_blank" rel="noreferrer" href={`https://onlyfans.com/${result.recipient_handle}`}>
             Tell @{result.recipient_handle}
           </a>
         </div>
@@ -99,7 +99,7 @@ export function LaunchForm({ initialHandle = "" }: { initialHandle?: string }) {
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label className="label" htmlFor="name">Name</label>
-            <input id="name" className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={32} placeholder="Khaby Coin" required />
+            <input id="name" className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={32} placeholder="Luna Coin" required />
           </div>
           <div>
             <label className="label" htmlFor="symbol">Ticker</label>
@@ -108,25 +108,25 @@ export function LaunchForm({ initialHandle = "" }: { initialHandle?: string }) {
               className="input num uppercase"
               value={symbol}
               onChange={(e) => setSymbol(e.target.value.replace(/[^a-z0-9]/gi, "").slice(0, 10))}
-              placeholder="KHABY"
+              placeholder="LUNA"
               required
             />
           </div>
         </div>
 
         <div className="mt-5">
-          <label className="label" htmlFor="handle">TikTok handle that gets paid</label>
+          <label className="label" htmlFor="handle">OnlyFans username that gets paid</label>
           <div className="relative">
             <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted">@</span>
-            <input id="handle" className="input pl-8" value={handle} onChange={(e) => setHandle(e.target.value)} placeholder="khaby.lame or a tiktok.com/@ link" required />
+            <input id="handle" className="input pl-8" value={handle} onChange={(e) => setHandle(e.target.value)} placeholder="lunavale or an onlyfans.com/ link" required />
           </div>
           <div className="mt-1.5 flex items-center justify-between text-xs">
             <span className={handle && !cleanHandle ? "text-rose" : "text-dim"}>
-              {handle && !cleanHandle ? "Handles are 2–24 letters, numbers, dots or underscores." : "The creator does not need to do anything first."}
+              {handle && !cleanHandle ? "Usernames are 2–30 letters, numbers, dots, dashes or underscores." : "The creator does not need to do anything first."}
             </span>
             {cleanHandle && (
-              <a className="text-cyan hover:underline" href={`https://www.tiktok.com/@${cleanHandle}`} target="_blank" rel="noreferrer">
-                tiktok.com/@{cleanHandle} ↗
+              <a className="text-cyan hover:underline" href={`https://onlyfans.com/${cleanHandle}`} target="_blank" rel="noreferrer">
+                onlyfans.com/{cleanHandle} ↗
               </a>
             )}
           </div>
@@ -136,7 +136,7 @@ export function LaunchForm({ initialHandle = "" }: { initialHandle?: string }) {
           <label className="label" htmlFor="description">Description</label>
           <textarea id="description" className="input" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} placeholder="What is this token about?" />
           <p className="mt-1.5 text-xs text-dim">
-            We append <span className="num text-muted">Fees to @{cleanHandle || "handle"} via TikPad</span> so the routing is visible on pump.fun.
+            We append <span className="num text-muted">Fees to onlyfans.com/{cleanHandle || "username"} via FansPad</span> so the routing is visible on pump.fun.
           </p>
         </div>
 
