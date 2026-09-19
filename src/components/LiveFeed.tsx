@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Avatar } from "./Avatar";
 import { TokenImage } from "./TokenImage";
+import { Verified } from "./Verified";
 import { fmtSol, fmtUsd, timeAgo } from "@/lib/format";
 import { feed, getToken, startSimulation, stats, type FeedItem, type State } from "@/lib/store";
 
@@ -31,7 +32,7 @@ export function LiveFeed({ state, compact = false }: { state: State; compact?: b
 
   return (
     <div className="card overflow-hidden">
-      <div className="flex items-center justify-between border-b border-line bg-bg/60 px-5 py-3">
+      <div className="flex items-center justify-between border-b border-line px-5 py-3">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <span className="live-dot" />
           Live
@@ -80,12 +81,12 @@ export function LiveFeed({ state, compact = false }: { state: State; compact?: b
 
 function FeedLine({ it }: { it: FeedItem }) {
   const who = (
-    <Link href={`/c/${it.handle}`} className="font-semibold hover:underline">
-      @{it.handle}
+    <Link href={`/c/${it.handle}`} className="inline-flex items-center gap-1 font-semibold hover:underline">
+      @{it.handle} <Verified size={13} />
     </Link>
   );
   const tok = it.mint ? (
-    <Link href={`/t/${it.mint}`} className="num font-semibold text-cyan hover:underline">
+    <Link href={`/t/${it.mint}`} className="num font-semibold text-[#0096d6] hover:underline">
       ${it.symbol ?? "?"}
     </Link>
   ) : null;

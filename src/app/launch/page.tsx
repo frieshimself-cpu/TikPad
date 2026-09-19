@@ -6,7 +6,7 @@ export default async function LaunchPage({ searchParams }: PageProps<"/launch">)
   const sp = await searchParams;
   const initialHandle = typeof sp.handle === "string" ? sp.handle : "";
   return (
-    <div className="max-w-3xl px-6 py-12 sm:px-10">
+    <div className="mx-auto max-w-3xl px-6 py-12 sm:px-12">
       <div className="mb-8">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Launch a token</h1>
         <p className="mt-2 max-w-2xl text-muted">Create a pump.fun token whose creator fees pay an OnlyFans creator. Takes one wallet confirmation.</p>

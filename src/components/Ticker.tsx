@@ -1,24 +1,18 @@
 import { FANSPAD_CA, FANSPAD_PUMP_URL } from "@/lib/economics";
 
-/** Thin scrolling strip across the top of every page. */
+/** Slim announcement bar. */
 export function Ticker() {
-  const item = (
-    <span className="num inline-flex items-center gap-8 px-8 text-[11px] font-semibold uppercase tracking-[0.18em]">
-      <span>$FANSPAD is live on pump.fun</span>
-      <span className="h-1 w-1 rounded-full bg-[#fbcfe8]" />
-      <span className="text-[#fbcfe8]">CA {FANSPAD_CA}</span>
-      <span className="h-1 w-1 rounded-full bg-[#fbcfe8]" />
-      <span>80% of creator fees to OnlyFans creators</span>
-      <span className="h-1 w-1 rounded-full bg-[#fbcfe8]" />
-    </span>
-  );
   return (
-    <a href={FANSPAD_PUMP_URL} target="_blank" rel="noreferrer" className="block overflow-hidden bg-fg py-2 text-white" aria-label="FansPad token on pump.fun">
-      <div className="ticker flex w-max">
-        {item}
-        {item}
-        {item}
-      </div>
+    <a
+      href={FANSPAD_PUMP_URL}
+      target="_blank"
+      rel="noreferrer"
+      className="flex items-center justify-center gap-3 border-b border-line bg-[#e6f6fd] px-4 py-2 text-xs font-medium text-[#0096d6] hover:bg-[#d8f1fc]"
+    >
+      <span className="rounded-full bg-cyan px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Live</span>
+      <span>$FANSPAD is on pump.fun</span>
+      <span className="mono hidden truncate text-[#0096d6]/70 sm:inline">{FANSPAD_CA}</span>
+      <span aria-hidden>→</span>
     </a>
   );
 }

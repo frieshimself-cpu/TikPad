@@ -6,6 +6,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { Avatar } from "./Avatar";
 import { TokenImage } from "./TokenImage";
 import { Skeleton } from "./Skeleton";
+import { Verified } from "./Verified";
 import { fmtSol, fmtUsd, short, timeAgo } from "@/lib/format";
 import { normalizeHandle } from "@/lib/handle";
 import { balanceFor, creditsFor, linkWallet, me, nextMilestoneCents, payoutsFor, signIn, signOut, tokensFor, useStore } from "@/lib/store";
@@ -63,7 +64,7 @@ export function ClaimPanel() {
           <div className="flex items-center gap-4">
             <Avatar handle={user.handle} src={user.avatar_url} size={56} />
             <div className="min-w-0 flex-1">
-              <div className="text-lg font-semibold">@{user.handle}</div>
+              <div className="flex items-center gap-1.5 text-lg font-bold">@{user.handle} <Verified size={18} /></div>
               <div className="text-sm text-muted">{user.display_name}</div>
             </div>
             <Link href={`/c/${user.handle}`} className="text-sm text-muted hover:text-fg">Public page →</Link>
@@ -108,7 +109,7 @@ export function ClaimPanel() {
                 <div className="num">{fmtUsd(p.usd_cents)} <span className="text-dim">· {fmtSol(p.lamports)}</span></div>
                 <div className="num text-xs text-dim">to {short(p.wallet)} · {timeAgo(p.ts)}</div>
               </div>
-              <span className="pill pill-amber">preview</span>
+              <span className="pill pill-cyan">preview</span>
             </li>
           ))}
         </Section>
@@ -130,7 +131,7 @@ export function ClaimPanel() {
           <h3 className="font-semibold">Payout wallet</h3>
           {user.payout_wallet ? (
             <>
-              <div className="num mt-3 break-all rounded-xl border border-line bg-elev p-3 text-xs">{user.payout_wallet}</div>
+              <div className="mono mt-3 break-all rounded-xl bg-elev p-3 text-xs">{user.payout_wallet}</div>
               <button className="btn btn-ghost mt-3 w-full" onClick={() => linkWallet(null)}>Unlink</button>
             </>
           ) : (

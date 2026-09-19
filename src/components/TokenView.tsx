@@ -24,7 +24,7 @@ export function TokenView({ mint }: { mint: string }) {
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-semibold">{t.name}</h1>
               <span className="num text-muted">${t.symbol}</span>
-              <span className="pill pill-amber">preview</span>
+              <span className="pill pill-cyan">preview</span>
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
               Fees route to
@@ -40,7 +40,7 @@ export function TokenView({ mint }: { mint: string }) {
           <Box k="Dev buy" v={fmtSol(t.dev_buy_lamports)} s={short(t.launcher_wallet)} />
           <Box k="Launched" v={timeAgo(t.created_at)} s={new Date(t.created_at).toLocaleDateString()} />
         </dl>
-        <div className="num mt-6 break-all text-xs text-dim">mint {t.mint}</div>
+        <div className="mono mt-6 break-all text-xs text-dim">mint {t.mint}</div>
       </div>
 
       <section className="card mt-6">

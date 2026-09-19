@@ -7,7 +7,7 @@ export const metadata = { title: "Docs — FansPad" };
 
 export default function DocsPage() {
   return (
-    <div className="max-w-3xl px-6 py-12 sm:px-10">
+    <div className="mx-auto max-w-3xl px-6 py-12 sm:px-12">
       <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">How FansPad works</h1>
       <p className="mt-3 text-muted">
         FansPad turns pump.fun creator fees into payouts for OnlyFans creators. The creator does not need an account, a wallet, or to know the

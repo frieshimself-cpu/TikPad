@@ -1,4 +1,4 @@
-const PALETTE = ["#6d28d9", "#ff3d00", "#1f8a4c", "#b45309", "#0e7490", "#be185d"];
+const PALETTE = ["#00aff0", "#0ea5e9", "#6366f1", "#14b8a6", "#8b5cf6", "#f472b6"];
 
 export function Avatar({ handle, src, size = 36 }: { handle: string; src?: string | null; size?: number }) {
   if (src) {

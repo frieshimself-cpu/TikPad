@@ -5,6 +5,7 @@ import { Avatar } from "./Avatar";
 import { TokenImage } from "./TokenImage";
 import { Skeleton } from "./Skeleton";
 import { Box, NotFound } from "./TokenView";
+import { Verified } from "./Verified";
 import { fmtSol, fmtUsd, short, timeAgo } from "@/lib/format";
 import { normalizeHandle, profileUrl } from "@/lib/handle";
 import { balanceFor, getCreator, nextMilestoneCents, payoutsFor, tokensFor, useStore } from "@/lib/store";
@@ -27,7 +28,7 @@ export function CreatorView({ handle: raw }: { handle: string }) {
         <div className="flex flex-wrap items-center gap-4">
           <Avatar handle={handle} src={creator?.avatar_url} size={64} />
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-semibold">@{handle}</h1>
+            <h1 className="flex items-center gap-2 text-2xl font-bold">@{handle} <Verified size={22} /></h1>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
               {creator?.display_name && creator.display_name !== handle && <span>{creator.display_name}</span>}
               <a href={profileUrl(handle)} target="_blank" rel="noreferrer" className="hover:text-fg hover:underline">onlyfans.com/{handle} ↗</a>

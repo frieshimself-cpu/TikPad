@@ -76,12 +76,12 @@ export function LaunchForm({ initialHandle = "" }: { initialHandle?: string }) {
   if (result) {
     return (
       <div className="card p-8 text-center">
-        <span className="pill pill-amber">Preview launch</span>
+        <span className="pill pill-cyan">Preview launch</span>
         <h2 className="mt-4 text-2xl font-semibold">${result.symbol} is live</h2>
         <p className="mt-2 text-muted">
           Creator fees now route to <span className="font-medium text-fg">@{result.recipient_handle}</span>.
         </p>
-        <div className="num mt-6 break-all rounded-xl border border-line bg-elev p-3 text-xs text-muted">{result.mint}</div>
+        <div className="mono mt-6 break-all rounded-xl bg-elev p-3 text-xs text-muted">{result.mint}</div>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link href={`/t/${result.mint}`} className="btn btn-primary">View token page</Link>
           <a className="btn btn-ghost" target="_blank" rel="noreferrer" href={`https://onlyfans.com/${result.recipient_handle}`}>
@@ -164,7 +164,7 @@ export function LaunchForm({ initialHandle = "" }: { initialHandle?: string }) {
       {error && <div className="mt-4 rounded-md border border-rose/40 bg-rose/10 p-4 text-sm text-rose">{error}</div>}
 
       {/* Sticky summary bar */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-fg bg-card lg:left-[240px]">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-card/95 backdrop-blur lg:left-[260px]">
         <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4 sm:px-10">
           <dl className="num flex flex-wrap gap-x-8 gap-y-1 text-sm">
             <Row k="Dev buy" v={fmtSol(devBuyNum * 1e9)} />
