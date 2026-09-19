@@ -152,8 +152,7 @@ export function LaunchForm() {
     <form onSubmit={submit} className="pb-32">
       {status && !status.launchEnabled && (
         <div className="mb-6 rounded-2xl border border-line bg-elev p-4 text-sm text-muted">
-          Launching is not enabled on this server yet. The operator needs to set <span className="mono">TREASURY_SECRET_KEY</span> and{" "}
-          <span className="mono">PINATA_JWT</span>.
+          Launching is not enabled on this server yet. The operator needs to set <span className="mono">TREASURY_SECRET_KEY</span>.
         </div>
       )}
 

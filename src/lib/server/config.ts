@@ -26,4 +26,5 @@ export const serverConfig = {
   slippagePct: num(process.env.SLIPPAGE_PCT, 10),
 } as const;
 
-export const isLaunchConfigured = () => !!(serverConfig.treasurySecretKey && serverConfig.pinataJwt);
+/** Launches need the treasury key. Metadata goes to Pinata when PINATA_JWT is set, otherwise the app hosts it itself. */
+export const isLaunchConfigured = () => !!serverConfig.treasurySecretKey;

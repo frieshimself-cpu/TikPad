@@ -1,8 +1,8 @@
 /** Launch orchestration: quote → verify payment → IPFS → pump.fun create → sweep dev buy to launcher. */
 import { randomBytes } from "node:crypto";
 import { LAMPORTS_PER_SOL, isLaunchConfigured, serverConfig } from "./config";
-import { claimQuote, getQuote, insertQuote, insertToken, setSweepSig, spendPayment } from "./db";
-import { createToken, uploadMetadata } from "./pumpportal";
+import { claimQuote, getQuote, insertAsset, insertMetadata, insertQuote, insertToken, setSweepSig, spendPayment } from "./db";
+import { buildMetadataJson, createToken, uploadMetadata } from "./pumpportal";
 import { sweepTokensTo, verifyPayment } from "./solana";
 import { TREASURY_ADDRESS } from "../economics";
 
@@ -15,6 +15,18 @@ export interface LaunchInput {
   twitter?: string;
   telegram?: string;
   website?: string;
+  /** Public origin of this deployment (for self-hosted metadata URLs), e.g. https://fanspad.vercel.app */
+  origin: string;
+}
+
+/** Store image + metadata in our own database and return URLs served by /api/img and /api/meta. */
+async function selfHostMetadata(input: LaunchInput, description: string) {
+  const id = randomBytes(12).toString("hex");
+  await insertAsset(id, input.image.type, input.image.bytes);
+  const imageUrl = `${input.origin}/api/img/${id}`;
+  const json = buildMetadataJson({ name: input.name, symbol: input.symbol, description, twitter: input.twitter, telegram: input.telegram, website: input.website }, imageUrl);
+  await insertMetadata(id, JSON.stringify(json));
+  return { imageUrl, metadataUri: `${input.origin}/api/meta/${id}` };
 }
 
 export async function quoteLaunch(wallet: string, devBuySol: number) {
@@ -33,7 +45,7 @@ export async function quoteLaunch(wallet: string, devBuySol: number) {
 }
 
 export async function executeLaunch(quoteId: string, paymentSig: string, input: LaunchInput) {
-  if (!isLaunchConfigured()) throw new Error("Launching is not configured on this server (TREASURY_SECRET_KEY / PINATA_JWT).");
+  if (!isLaunchConfigured()) throw new Error("Launching is not configured on this server (TREASURY_SECRET_KEY).");
   const q = await getQuote(quoteId);
   if (!q) throw new Error("Unknown launch quote. Start again.");
   if (q.used) throw new Error("This launch was already used.");
@@ -45,16 +57,18 @@ export async function executeLaunch(quoteId: string, paymentSig: string, input: 
   if (!(await claimQuote(quoteId))) throw new Error("This launch was already used.");
 
   const description = input.description.trim();
-  const { imageUrl, metadataUri } = await uploadMetadata({
-    name: input.name,
-    symbol: input.symbol,
-    description,
-    image: new Blob([Buffer.from(input.image.bytes)], { type: input.image.type }),
-    imageName: input.image.name,
-    twitter: input.twitter,
-    telegram: input.telegram,
-    website: input.website,
-  });
+  const { imageUrl, metadataUri } = serverConfig.pinataJwt
+    ? await uploadMetadata({
+        name: input.name,
+        symbol: input.symbol,
+        description,
+        image: new Blob([Buffer.from(input.image.bytes)], { type: input.image.type }),
+        imageName: input.image.name,
+        twitter: input.twitter,
+        telegram: input.telegram,
+        website: input.website,
+      })
+    : await selfHostMetadata(input, description);
 
   const { mint, signature } = await createToken({ name: input.name, symbol: input.symbol, metadataUri, devBuySol: q.dev_buy_lamports / LAMPORTS_PER_SOL });
 

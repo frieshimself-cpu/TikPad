@@ -62,6 +62,17 @@ CREATE TABLE IF NOT EXISTS used_payments (
   sig TEXT PRIMARY KEY,
   ts INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS assets (
+  id TEXT PRIMARY KEY,
+  content_type TEXT NOT NULL,
+  bytes BLOB NOT NULL,
+  created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS metadata (
+  id TEXT PRIMARY KEY,
+  json TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
 CREATE TABLE IF NOT EXISTS claims (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   sig TEXT NOT NULL UNIQUE,
@@ -121,6 +132,13 @@ export const insertToken = (t: Omit<TokenRow, "created_at">) =>
 export const setSweepSig = (mint: string, sig: string) => run("UPDATE tokens SET sweep_sig=? WHERE mint=?", [sig, mint]);
 export const listTokens = (limit = 100) => all<TokenRow>("SELECT * FROM tokens ORDER BY created_at DESC LIMIT ?", [limit]);
 export const getToken = (mint: string) => one<TokenRow>("SELECT * FROM tokens WHERE mint=?", [mint]);
+
+/* self-hosted token metadata (used when PINATA_JWT is not set) */
+export const insertAsset = (id: string, contentType: string, bytes: Uint8Array) =>
+  run("INSERT INTO assets(id,content_type,bytes,created_at) VALUES(?,?,?,?)", [id, contentType, bytes, Date.now()]);
+export const getAsset = (id: string) => one<{ content_type: string; bytes: ArrayBuffer | Uint8Array }>("SELECT content_type, bytes FROM assets WHERE id=?", [id]);
+export const insertMetadata = (id: string, json: string) => run("INSERT INTO metadata(id,json,created_at) VALUES(?,?,?)", [id, json, Date.now()]);
+export const getMetadata = async (id: string) => (await one<{ json: string }>("SELECT json FROM metadata WHERE id=?", [id]))?.json;
 
 /* claims */
 export const insertClaim = (sig: string, lamports: number) => run("INSERT OR IGNORE INTO claims(sig,lamports,ts) VALUES(?,?,?)", [sig, lamports, Date.now()]);

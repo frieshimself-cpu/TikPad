@@ -31,6 +31,20 @@ export interface TokenMeta {
   website?: string;
 }
 
+export function buildMetadataJson(meta: Omit<TokenMeta, "image" | "imageName">, imageUrl: string) {
+  return {
+    name: meta.name,
+    symbol: meta.symbol,
+    description: meta.description,
+    image: imageUrl,
+    showName: true,
+    createdOn: "https://pump.fun",
+    ...(meta.twitter ? { twitter: meta.twitter } : {}),
+    ...(meta.telegram ? { telegram: meta.telegram } : {}),
+    ...(meta.website ? { website: meta.website } : {}),
+  };
+}
+
 export async function uploadMetadata(meta: TokenMeta) {
   const imageUrl = await pinataUpload(meta.image, meta.imageName);
   const json = {

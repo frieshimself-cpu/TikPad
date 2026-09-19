@@ -24,7 +24,7 @@ Launch a token, point its creator fees at any OnlyFans `@handle`, and FansPad pa
 | Variable | Purpose |
 | --- | --- |
 | `TREASURY_SECRET_KEY` | Secret key of the treasury. The server refuses to launch if it belongs to any other wallet. |
-| `PINATA_JWT` | IPFS uploads for image + metadata (pump.fun requires a metadata URI). |
+| `PINATA_JWT` | Optional. Pins image + metadata on IPFS. Without it FansPad serves the metadata itself from the database. |
 | `SOLANA_RPC_URL` | Use a dedicated RPC; the public endpoint rate-limits confirmations. |
 | `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | Persistent database for quotes, tokens and claims. Required on Vercel. |
 | `CRON_SECRET` | Bearer token Vercel sends to `/api/cron/claim`. |

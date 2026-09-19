@@ -35,11 +35,17 @@ export async function POST(req: Request) {
   if (file.size > 5 * 1024 * 1024) return NextResponse.json({ error: "Image must be under 5 MB." }, { status: 400 });
   if (!/^image\/(png|jpeg|gif|webp)$/.test(file.type)) return NextResponse.json({ error: "Image must be PNG, JPEG, GIF or WebP." }, { status: 400 });
 
+  // Public origin for self-hosted metadata URLs (pump.fun fetches these).
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "localhost:3000";
+  const proto = req.headers.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  const origin = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || `${proto}://${host}`;
+
   try {
     const result = await executeLaunch(parsed.data.quoteId, parsed.data.paymentSig, {
       ...parsed.data,
       symbol: parsed.data.symbol.toUpperCase(),
       image: { bytes: new Uint8Array(await file.arrayBuffer()), type: file.type, name: file.name || "image.png" },
+      origin,
     });
     return NextResponse.json(result);
   } catch (e) {
