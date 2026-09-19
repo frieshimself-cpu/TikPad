@@ -4,7 +4,6 @@ import Link from "next/link";
 import { LiveFeed } from "./LiveFeed";
 import { Avatar } from "./Avatar";
 import { Skeleton } from "./Skeleton";
-import { ContractAddress } from "./ContractAddress";
 import { HeroArt } from "./HeroArt";
 import { Verified } from "./Verified";
 import { fmtUsd } from "@/lib/format";
@@ -37,9 +36,6 @@ export function HomeView() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/launch" className="btn btn-primary h-12 px-7 text-base">Launch a token</Link>
               <Link href="/claim" className="btn btn-ghost h-12 px-7 text-base">I&apos;m a creator</Link>
-            </div>
-            <div className="mt-10 max-w-xl">
-              <ContractAddress />
             </div>
           </div>
           <div className="hidden xl:block">

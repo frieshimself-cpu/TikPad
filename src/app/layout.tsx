@@ -3,7 +3,6 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Sidebar } from "@/components/Sidebar";
-import { Ticker } from "@/components/Ticker";
 import { Footer } from "@/components/Footer";
 
 const body = Inter({ variable: "--font-body", subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
@@ -22,7 +21,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <div className="lg:grid lg:grid-cols-[260px_1fr]">
             <Sidebar />
             <div className="flex min-h-screen min-w-0 flex-col">
-              <Ticker />
               <main className="flex-1">{children}</main>
               <Footer />
             </div>

@@ -4,8 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
 import { WalletButton } from "./WalletButton";
-import { ContractAddress } from "./ContractAddress";
-import { FANSPAD_PUMP_URL } from "@/lib/economics";
 
 const LINKS = [
   ["/", "Home", "M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"],
@@ -40,18 +38,11 @@ export function Sidebar() {
               </Link>
             );
           })}
-          <a href={FANSPAD_PUMP_URL} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-full px-4 py-2.5 text-[15px] font-medium text-fg transition hover:bg-elev">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-13v10M9 10.5h4.5a1.75 1.75 0 0 1 0 3.5H10a1.75 1.75 0 0 0 0 3.5h5" />
-            </svg>
-            $FANSPAD
-          </a>
         </nav>
         <div className="px-4 pt-6">
           <Link href="/launch" className="btn btn-primary w-full">Launch a token</Link>
         </div>
         <div className="mt-auto space-y-3 px-4 pb-6">
-          <ContractAddress compact />
           <WalletButton />
         </div>
       </aside>
