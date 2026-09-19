@@ -46,7 +46,12 @@ export const memoInstruction = (memo: string) => new TransactionInstruction({ pr
 
 /** Verify `sig` transferred at least `minLamports` from `from` to the treasury and carried `memo`. */
 export async function verifyPayment(sig: string, from: string, minLamports: number, memo: string) {
-  const tx = await connection().getParsedTransaction(sig, { maxSupportedTransactionVersion: 0, commitment: "confirmed" });
+  let tx;
+  try {
+    tx = await connection().getParsedTransaction(sig, { maxSupportedTransactionVersion: 0, commitment: "confirmed" });
+  } catch {
+    throw new Error("Payment signature is not valid.");
+  }
   if (!tx) throw new Error("Payment not found yet. Wait a few seconds and retry.");
   if (tx.meta?.err) throw new Error("Payment transaction failed on chain.");
   let paid = 0;

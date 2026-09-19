@@ -1,8 +1,18 @@
-/** Launch orchestration: quote → verify payment → IPFS → pump.fun create → sweep dev buy to launcher. */
-import { randomBytes } from "node:crypto";
+/**
+ * Launch orchestration: signed quote → verify payment → metadata → pump.fun
+ * create (treasury as creator) → sweep dev buy to launcher.
+ *
+ * Stateless by design: the quote is an HMAC token and the mint keypair is
+ * derived from the payment signature, so replaying a payment would try to
+ * create a mint that already exists and fail on chain. The database is only
+ * used, best effort, to remember launched coins for display.
+ */
+import { createHash } from "node:crypto";
+import { Keypair } from "@solana/web3.js";
 import { LAMPORTS_PER_SOL, isLaunchConfigured, serverConfig } from "./config";
-import { claimQuote, getQuote, insertAsset, insertMetadata, insertQuote, insertToken, setSweepSig, spendPayment } from "./db";
-import { buildMetadataJson, createToken, uploadMetadata } from "./pumpportal";
+import { insertAsset, insertMetadata, insertToken, isEphemeralDb, setSweepSig } from "./db";
+import { buildMetadataJson, createToken, pumpIpfsUpload, uploadMetadata } from "./pumpportal";
+import { newNonce, signQuote, verifyQuote } from "./quote";
 import { sweepTokensTo, verifyPayment } from "./solana";
 import { TREASURY_ADDRESS } from "../economics";
 
@@ -15,27 +25,18 @@ export interface LaunchInput {
   twitter?: string;
   telegram?: string;
   website?: string;
-  /** Public origin of this deployment (for self-hosted metadata URLs), e.g. https://fanspad.vercel.app */
+  /** Public origin of this deployment, used only for the self-hosted metadata fallback. */
   origin: string;
-}
-
-/** Store image + metadata in our own database and return URLs served by /api/img and /api/meta. */
-async function selfHostMetadata(input: LaunchInput, description: string) {
-  const id = randomBytes(12).toString("hex");
-  await insertAsset(id, input.image.type, input.image.bytes);
-  const imageUrl = `${input.origin}/api/img/${id}`;
-  const json = buildMetadataJson({ name: input.name, symbol: input.symbol, description, twitter: input.twitter, telegram: input.telegram, website: input.website }, imageUrl);
-  await insertMetadata(id, JSON.stringify(json));
-  return { imageUrl, metadataUri: `${input.origin}/api/meta/${id}` };
 }
 
 export async function quoteLaunch(wallet: string, devBuySol: number) {
   const dev_buy_lamports = Math.round(devBuySol * LAMPORTS_PER_SOL);
   const total_lamports = dev_buy_lamports + serverConfig.launchNetworkLamports + serverConfig.launchFeeLamports;
-  const id = `fp_${randomBytes(8).toString("hex")}`;
-  await insertQuote({ id, wallet, dev_buy_lamports, total_lamports });
+  const n = newNonce();
+  const id = signQuote({ n, w: wallet, d: dev_buy_lamports, t: total_lamports, ts: Date.now() });
   return {
     id,
+    memo: n,
     treasury: TREASURY_ADDRESS,
     dev_buy_lamports,
     network_lamports: serverConfig.launchNetworkLamports,
@@ -44,54 +45,75 @@ export async function quoteLaunch(wallet: string, devBuySol: number) {
   };
 }
 
-export async function executeLaunch(quoteId: string, paymentSig: string, input: LaunchInput) {
-  if (!isLaunchConfigured()) throw new Error("Launching is not configured on this server (TREASURY_SECRET_KEY).");
-  const q = await getQuote(quoteId);
-  if (!q) throw new Error("Unknown launch quote. Start again.");
-  if (q.used) throw new Error("This launch was already used.");
-  if (q.wallet !== input.wallet) throw new Error("Quote does not match this wallet.");
-  if (Date.now() - q.created_at > 30 * 60 * 1000) throw new Error("Launch quote expired. Start again.");
+/** Mint keypair derived from the payment signature: one payment can only ever create one coin. */
+const mintFor = (paymentSig: string) => Keypair.fromSeed(createHash("sha256").update("fanspad:mint:" + paymentSig).digest());
 
-  await verifyPayment(paymentSig, input.wallet, q.total_lamports, quoteId);
-  if (!(await spendPayment(paymentSig))) throw new Error("This payment was already used for a launch.");
-  if (!(await claimQuote(quoteId))) throw new Error("This launch was already used.");
-
-  const description = input.description.trim();
-  const { imageUrl, metadataUri } = serverConfig.pinataJwt
-    ? await uploadMetadata({
-        name: input.name,
-        symbol: input.symbol,
-        description,
-        image: new Blob([Buffer.from(input.image.bytes)], { type: input.image.type }),
-        imageName: input.image.name,
-        twitter: input.twitter,
-        telegram: input.telegram,
-        website: input.website,
-      })
-    : await selfHostMetadata(input, description);
-
-  const { mint, signature } = await createToken({ name: input.name, symbol: input.symbol, metadataUri, devBuySol: q.dev_buy_lamports / LAMPORTS_PER_SOL });
-
-  await insertToken({
-    mint,
+async function hostMetadata(input: LaunchInput, description: string) {
+  const meta = {
     name: input.name,
     symbol: input.symbol,
     description,
-    image_url: imageUrl,
-    metadata_uri: metadataUri,
-    launcher_wallet: input.wallet,
-    dev_buy_lamports: q.dev_buy_lamports,
-    create_sig: signature,
-    sweep_sig: null,
+    image: new Blob([Buffer.from(input.image.bytes)], { type: input.image.type }),
+    imageName: input.image.name,
+    twitter: input.twitter,
+    telegram: input.telegram,
+    website: input.website,
+  };
+  if (serverConfig.pinataJwt) return uploadMetadata(meta);
+  try {
+    return await pumpIpfsUpload(meta);
+  } catch (e) {
+    if (isEphemeralDb()) throw e;
+    // Fallback: serve it ourselves (needs a persistent database).
+    const id = createHash("sha256").update(input.image.bytes).digest("hex").slice(0, 24);
+    await insertAsset(id, input.image.type, input.image.bytes);
+    const imageUrl = `${input.origin}/api/img/${id}`;
+    await insertMetadata(id, JSON.stringify(buildMetadataJson({ name: input.name, symbol: input.symbol, description, twitter: input.twitter, telegram: input.telegram, website: input.website }, imageUrl)));
+    return { imageUrl, metadataUri: `${input.origin}/api/meta/${id}` };
+  }
+}
+
+export async function executeLaunch(quoteId: string, paymentSig: string, input: LaunchInput) {
+  if (!isLaunchConfigured()) throw new Error("Launching is not configured on this server (TREASURY_SECRET_KEY).");
+  const q = verifyQuote(quoteId);
+  if (q.w !== input.wallet) throw new Error("Quote does not match this wallet.");
+
+  await verifyPayment(paymentSig, input.wallet, q.t, q.n);
+
+  const description = input.description.trim();
+  const { imageUrl, metadataUri } = await hostMetadata(input, description);
+  const { mint, signature } = await createToken({
+    name: input.name,
+    symbol: input.symbol,
+    metadataUri,
+    devBuySol: q.d / LAMPORTS_PER_SOL,
+    mintKeypair: mintFor(paymentSig),
   });
 
+  try {
+    await insertToken({
+      mint,
+      name: input.name,
+      symbol: input.symbol,
+      description,
+      image_url: imageUrl,
+      metadata_uri: metadataUri,
+      launcher_wallet: input.wallet,
+      dev_buy_lamports: q.d,
+      create_sig: signature,
+      sweep_sig: null,
+    });
+  } catch (e) {
+    console.error("token record not saved (database unavailable):", e);
+  }
+
   let sweepSig: string | null = null;
-  if (q.dev_buy_lamports > 0) {
+  if (q.d > 0) {
     try {
       sweepSig = await sweepTokensTo(mint, input.wallet);
-      if (sweepSig) await setSweepSig(mint, sweepSig);
+      if (sweepSig) await setSweepSig(mint, sweepSig).catch(() => {});
     } catch (e) {
-      // The coin exists and is recorded; the sweep can be retried from the treasury by hand.
+      // The coin exists; the sweep can be retried from the treasury by hand.
       console.error("dev-buy sweep failed for", mint, e);
     }
   }

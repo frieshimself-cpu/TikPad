@@ -15,7 +15,9 @@ Launch a token, point its creator fees at any OnlyFans `@handle`, and FansPad pa
 
 **Launching is real.** The launch page creates coins on pump.fun through PumpPortal. The FansPad treasury (`aCKyUCgUMfeScz1M9AsMzGZcJxB2EikTGgaftromUz1`) signs as the on-chain creator, so 100% of every coin's creator rewards accrue to it with no way for a launcher to redirect them. Launchers choose name, ticker, description, image, links and a dev-buy amount; they pay dev buy + a 0.03 SOL creation reserve to the treasury in one transaction, the server creates the coin, and the dev-buy tokens are swept to the launcher's wallet.
 
-**Claiming is automatic.** `/api/cron/claim` (Vercel Cron, every 2 minutes on Pro) or `npm run claimer` (any always-on host) calls PumpPortal's `collectCreatorFee` for the treasury. One transaction claims across every coin the treasury created.
+**Claiming is automatic.** Three mechanisms, any of which is enough: every server-rendered page view triggers a claim if the last one was over 2 minutes ago (runs after the response); `/api/cron/claim` can be hit by Vercel Cron (daily by default, `*/2 * * * *` on Pro) or any external pinger; and `npm run claimer` loops every 2 minutes from any always-on host. One PumpPortal `collectCreatorFee` transaction claims across every coin the treasury created, and a simulation runs first so empty claims cost nothing.
+
+**The only required secret is `TREASURY_SECRET_KEY`.**
 
 **Everything else on the site** (feed, leaderboard, creator dashboard) is still the browser-side preview from `src/lib/store.ts`, to be replaced by the real backend.
 
@@ -24,10 +26,10 @@ Launch a token, point its creator fees at any OnlyFans `@handle`, and FansPad pa
 | Variable | Purpose |
 | --- | --- |
 | `TREASURY_SECRET_KEY` | Secret key of the treasury. The server refuses to launch if it belongs to any other wallet. |
-| `PINATA_JWT` | Optional. Pins image + metadata on IPFS. Without it FansPad serves the metadata itself from the database. |
+| `PINATA_JWT` | Optional. Without it, metadata is uploaded through pump.fun's own IPFS endpoint (no key needed). |
 | `SOLANA_RPC_URL` | Use a dedicated RPC; the public endpoint rate-limits confirmations. |
-| `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | Persistent database for quotes, tokens and claims. Required on Vercel. |
-| `CRON_SECRET` | Bearer token Vercel sends to `/api/cron/claim`. |
+| `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | Optional. Launches are stateless (signed quotes, mint derived from the payment); the database only remembers launched coins for display. |
+| `CRON_SECRET` | Optional. If set, `/api/cron/claim` requires it as a bearer token. |
 
 ```bash
 npm install

@@ -20,6 +20,7 @@ interface Status {
 }
 interface Quote {
   id: string;
+  memo: string;
   treasury: string;
   dev_buy_lamports: number;
   network_lamports: number;
@@ -94,7 +95,7 @@ export function LaunchForm() {
       setStep("paying");
       const tx = new Transaction().add(
         SystemProgram.transfer({ fromPubkey: publicKey, toPubkey: new PublicKey(q.treasury), lamports: q.total_lamports }),
-        new TransactionInstruction({ programId: MEMO_PROGRAM_ID, keys: [], data: Buffer.from(q.id, "utf8") }),
+        new TransactionInstruction({ programId: MEMO_PROGRAM_ID, keys: [], data: Buffer.from(q.memo, "utf8") }),
       );
       const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
       tx.recentBlockhash = blockhash;

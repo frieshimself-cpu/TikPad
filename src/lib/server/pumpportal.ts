@@ -8,6 +8,24 @@ import { connection, treasuryKeypair } from "./solana";
 
 const TRADE_LOCAL = "https://pumpportal.fun/api/trade-local";
 const PINATA_UPLOAD = "https://uploads.pinata.cloud/v3/files";
+const PUMP_IPFS = "https://pump.fun/api/ipfs";
+
+/** pump.fun's own metadata uploader. No key needed. Returns { imageUrl, metadataUri }. */
+export async function pumpIpfsUpload(meta: TokenMeta) {
+  const form = new FormData();
+  form.append("file", meta.image, meta.imageName);
+  form.append("name", meta.name);
+  form.append("symbol", meta.symbol);
+  form.append("description", meta.description);
+  form.append("showName", "true");
+  if (meta.twitter) form.append("twitter", meta.twitter);
+  if (meta.telegram) form.append("telegram", meta.telegram);
+  if (meta.website) form.append("website", meta.website);
+  const res = await fetch(PUMP_IPFS, { method: "POST", body: form });
+  const json = (await res.json().catch(() => ({}))) as { metadataUri?: string; metadata?: { image?: string } };
+  if (!res.ok || !json.metadataUri) throw new Error(`pump.fun metadata upload failed (${res.status})`);
+  return { imageUrl: json.metadata?.image ?? null, metadataUri: json.metadataUri };
+}
 
 async function pinataUpload(file: Blob, filename: string): Promise<string> {
   if (!serverConfig.pinataJwt) throw new Error("PINATA_JWT is not set");
@@ -80,9 +98,9 @@ async function sendAndConfirm(tx: VersionedTransaction) {
  * Create a pump.fun coin. The treasury signs as `publicKey`, which makes it the
  * on-chain creator: 100% of creator rewards accrue to it. Optional dev buy.
  */
-export async function createToken(opts: { name: string; symbol: string; metadataUri: string; devBuySol: number }) {
+export async function createToken(opts: { name: string; symbol: string; metadataUri: string; devBuySol: number; mintKeypair?: Keypair }) {
   const treasury = treasuryKeypair();
-  const mintKeypair = Keypair.generate();
+  const mintKeypair = opts.mintKeypair ?? Keypair.generate();
   const tx = await tradeLocal({
     publicKey: treasury.publicKey.toBase58(),
     action: "create",
