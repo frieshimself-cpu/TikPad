@@ -11,5 +11,5 @@ export const TREASURY_ADDRESS = "aCKyUCgUMfeScz1M9AsMzGZcJxB2EikTGgaftromUz1";
 export const CLAIM_INTERVAL_MS = 2 * 60 * 1000;
 
 /** The FansPad token contract address on pump.fun. */
-export const FANSPAD_CA = "6woVtnriMjwmfUUUAJJpB6pyztYuyk5DGw9TXNFZpump";
+export const FANSPAD_CA = "BbANAAXEUzg13z29SqSEPiSm5KQt3yVBkA1SKPM9pump";
 export const FANSPAD_PUMP_URL = `https://pump.fun/coin/${FANSPAD_CA}`;
