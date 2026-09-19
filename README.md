@@ -11,29 +11,44 @@ Launch a token, point its creator fees at any OnlyFans `@handle`, and FansPad pa
 3. **Attribution.** The fee router streams trades for all registered tokens, periodically claims creator fees, and splits each claim across tokens pro-rata by traded volume since the last claim. 80% of a token's share is credited to its OnlyFans handle, 20% stays with FansPad.
 4. **Payout.** The creator signs in with OnlyFans (Login Kit), which returns the verified username, then links any Solana address. Their unpaid balance is sent in SOL when lifetime earnings cross $5, $10, $20, $50, $100, $250, $500, $1,000 and every $1,000 after.
 
-## Current status: front end only
+## Current status
 
-This deployment is the front end. Every screen works, but launches, creator verification, fee claims and payouts are simulated in the browser (localStorage) so the whole flow can be explored with no wallet, keys or database. Creator handles in the preview are fictional. The real backend (on-chain launch through PumpPortal, fee router, OnlyFans Login Kit, database) is parked in [`backend/`](backend/README.md) and is not built or deployed.
+**Launching is real.** The launch page creates coins on pump.fun through PumpPortal. The FansPad treasury (`aCKyUCgUMfeScz1M9AsMzGZcJxB2EikTGgaftromUz1`) signs as the on-chain creator, so 100% of every coin's creator rewards accrue to it with no way for a launcher to redirect them. Launchers choose name, ticker, description, image, links and a dev-buy amount; they pay dev buy + a 0.03 SOL creation reserve to the treasury in one transaction, the server creates the coin, and the dev-buy tokens are swept to the launcher's wallet.
 
-## Deploy to Vercel
+**Claiming is automatic.** `/api/cron/claim` (Vercel Cron, every 2 minutes on Pro) or `npm run claimer` (any always-on host) calls PumpPortal's `collectCreatorFee` for the treasury. One transaction claims across every coin the treasury created.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ffrieshimself-cpu%2FFansPad&project-name=fanspad&repository-name=fanspad)
+**Everything else on the site** (feed, leaderboard, creator dashboard) is still the browser-side preview from `src/lib/store.ts`, to be replaced by the real backend.
 
-No environment variables, no database, no native modules. Import the repository and press Deploy.
+## Configuration
 
-## Running it locally
+| Variable | Purpose |
+| --- | --- |
+| `TREASURY_SECRET_KEY` | Secret key of the treasury. The server refuses to launch if it belongs to any other wallet. |
+| `PINATA_JWT` | IPFS uploads for image + metadata (pump.fun requires a metadata URI). |
+| `SOLANA_RPC_URL` | Use a dedicated RPC; the public endpoint rate-limits confirmations. |
+| `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | Persistent database for quotes, tokens and claims. Required on Vercel. |
+| `CRON_SECRET` | Bearer token Vercel sends to `/api/cron/claim`. |
 
 ```bash
 npm install
-npm run dev     # http://localhost:3000
+cp .env.example .env    # fill in the values above
+npm run dev             # site + API
+npm run claimer         # 2-minute claim loop (if not using Vercel Cron)
 ```
+
+## Deploy to Vercel
+
+Import the repo, add the environment variables above, deploy. Vercel Cron runs the claim every 2 minutes on Pro plans; Hobby allows only daily crons, so run `npm run claimer` elsewhere in that case.
 
 ## Layout
 
 ```
 src/app             pages (App Router)
 src/components      UI (landing feed, launch form, creator dashboard, token + creator views)
-src/lib/store.ts    browser-side state: seeded history, launches, sign-in, wallet, simulated claims + payouts
+src/lib/server/     launch orchestration, PumpPortal + Pinata, treasury wallet, libsql, claim cycle
+src/app/api/        launch/quote, launch, cron/claim, tokens, status
+scripts/claimer.ts  2-minute claim loop
+src/lib/store.ts    browser-side preview state for the feed / creator pages (to be replaced)
 src/lib/economics.ts  split and milestone constants
 src/lib/handle.ts   OnlyFans handle normalisation
 backend/            parked server code: database, launch orchestration, fee router, OnlyFans OAuth, worker
