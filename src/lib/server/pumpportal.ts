@@ -87,22 +87,27 @@ export async function createToken(opts: { name: string; symbol: string; metadata
 
 /**
  * Claim all pending creator rewards for the treasury, across every coin it
- * created (bonding curve and PumpSwap). Returns the signature and the SOL
- * balance delta, or null when PumpPortal reports nothing to claim.
+ * created (bonding curve and PumpSwap). PumpPortal returns a transaction even
+ * when nothing is owed, so we simulate first and treat a failed simulation as
+ * "nothing to claim". Returns null in that case, or when the treasury cannot
+ * pay the network fee.
  */
-export async function collectCreatorFees(): Promise<{ signature: string; lamports: number } | null> {
+export async function collectCreatorFees(log: (s: string) => void = () => {}): Promise<{ signature: string; lamports: number } | null> {
   const treasury = treasuryKeypair();
   const c = connection();
   const before = await c.getBalance(treasury.publicKey, "confirmed");
-  let tx: VersionedTransaction;
-  try {
-    tx = await tradeLocal({ publicKey: treasury.publicKey.toBase58(), action: "collectCreatorFee", priorityFee: serverConfig.priorityFeeSol });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    if (/no.*fee|nothing|0 fees|not found/i.test(msg)) return null;
-    throw e;
+  if (before < 0.001 * 1e9) {
+    log(`treasury has ${before / 1e9} SOL, not enough to pay a claim fee; skipping`);
+    return null;
   }
+  const tx = await tradeLocal({ publicKey: treasury.publicKey.toBase58(), action: "collectCreatorFee", priorityFee: serverConfig.priorityFeeSol });
   tx.sign([treasury]);
+  const sim = await c.simulateTransaction(tx, { sigVerify: false, replaceRecentBlockhash: true });
+  if (sim.value.err) {
+    const logs = (sim.value.logs ?? []).filter((l) => /error|fail|insufficient/i.test(l)).slice(-2).join(" | ");
+    log(`nothing to claim (${JSON.stringify(sim.value.err)}${logs ? `: ${logs}` : ""})`);
+    return null;
+  }
   const signature = await sendAndConfirm(tx);
   const after = await c.getBalance(treasury.publicKey, "confirmed");
   return { signature, lamports: after - before };
