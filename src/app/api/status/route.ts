@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isLaunchConfigured, serverConfig } from "@/lib/server/config";
 import { scheduleOpportunisticClaim } from "@/lib/server/autoclaim";
-import { isEphemeralDb } from "@/lib/server/db";
+import { dbAvailable } from "@/lib/server/db";
 import { TREASURY_ADDRESS } from "@/lib/economics";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +15,6 @@ export async function GET() {
     networkLamports: serverConfig.launchNetworkLamports,
     feeLamports: serverConfig.launchFeeLamports,
     maxDevBuySol: serverConfig.maxDevBuySol,
-    persistentDb: !isEphemeralDb(),
+    persistentDb: dbAvailable(),
   });
 }

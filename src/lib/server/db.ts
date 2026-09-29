@@ -3,9 +3,7 @@
  * launches to be reliable), otherwise a local file. Tables: launched tokens,
  * one-time launch quotes, and fee claims.
  */
-import { createClient, type Client, type InArgs } from "@libsql/client";
-import { mkdirSync } from "node:fs";
-import { dirname } from "node:path";
+import type { Client, InArgs } from "@libsql/client";
 import { serverConfig } from "./config";
 
 export interface TokenRow {
@@ -85,19 +83,37 @@ declare global {
   var __hushpayDb: Promise<Client> | undefined;
 }
 
-export function dbUrl() {
+/**
+ * The database is optional. Hosted Turso (any environment) or a local file
+ * (outside Vercel). On Vercel without Turso there is no database: launches
+ * still work (they are stateless) and lists simply come back empty.
+ * The client is imported lazily so no page render ever depends on it.
+ */
+export function dbUrl(): string | null {
   if (serverConfig.tursoUrl) return serverConfig.tursoUrl;
-  if (process.env.VERCEL) return ":memory:";
+  if (process.env.VERCEL) return null;
   return `file:${serverConfig.dbPath}`;
 }
-export const isEphemeralDb = () => dbUrl() === ":memory:";
+export const dbAvailable = () => dbUrl() !== null;
+export const isEphemeralDb = () => !dbAvailable();
 
 export function db(): Promise<Client> {
   if (globalThis.__hushpayDb) return globalThis.__hushpayDb;
   globalThis.__hushpayDb = (async () => {
     const u = dbUrl();
-    if (u.startsWith("file:")) mkdirSync(dirname(u.slice(5)), { recursive: true });
-    const c = createClient({ url: u, authToken: serverConfig.tursoAuthToken || undefined });
+    if (!u) throw new Error("No database configured (set TURSO_DATABASE_URL).");
+    let c: Client;
+    if (u.startsWith("file:")) {
+      const { mkdirSync } = await import("node:fs");
+      const { dirname } = await import("node:path");
+      mkdirSync(dirname(u.slice(5)), { recursive: true });
+      const { createClient } = await import("@libsql/client");
+      c = createClient({ url: u });
+    } else {
+      // Remote Turso over HTTP: no native binary needed.
+      const { createClient } = await import("@libsql/client/web");
+      c = createClient({ url: u, authToken: serverConfig.tursoAuthToken || undefined });
+    }
     await c.executeMultiple(SCHEMA);
     return c;
   })();
@@ -105,12 +121,14 @@ export function db(): Promise<Client> {
 }
 
 async function all<T>(sql: string, args: InArgs = []): Promise<T[]> {
+  if (!dbAvailable()) return [];
   return (await (await db()).execute({ sql, args })).rows as unknown as T[];
 }
 async function one<T>(sql: string, args: InArgs = []): Promise<T | undefined> {
   return (await all<T>(sql, args))[0];
 }
 async function run(sql: string, args: InArgs = []): Promise<number> {
+  if (!dbAvailable()) return 0;
   return (await (await db()).execute({ sql, args })).rowsAffected;
 }
 
@@ -144,4 +162,4 @@ export const getMetadata = async (id: string) => (await one<{ json: string }>("S
 export const insertClaim = (sig: string, lamports: number) => run("INSERT OR IGNORE INTO claims(sig,lamports,ts) VALUES(?,?,?)", [sig, lamports, Date.now()]);
 export const listClaims = (limit = 50) => all<ClaimRow>("SELECT * FROM claims ORDER BY ts DESC LIMIT ?", [limit]);
 export const claimTotals = async () =>
-  (await one<{ n: number; lamports: number }>("SELECT COUNT(*) AS n, COALESCE(SUM(lamports),0) AS lamports FROM claims"))!;
+  (await one<{ n: number; lamports: number }>("SELECT COUNT(*) AS n, COALESCE(SUM(lamports),0) AS lamports FROM claims")) ?? { n: 0, lamports: 0 };
