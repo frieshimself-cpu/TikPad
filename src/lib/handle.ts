@@ -13,4 +13,4 @@ export function normalizeHandle(input: string): string | null {
 export const profileUrl = (handle: string) => `https://x.com/${handle}`;
 
 /** The text a launch puts in the token description so the routing is visible on pump.fun. */
-export const feeTag = (handle: string) => `Fees to @${handle} via HushPay`;
+export const feeTag = () => "Creator fees fund this coin's ads via AdPad";

@@ -2,7 +2,7 @@
  * One-off real launch from the treasury itself (no launcher payment step).
  * Proves the pump.fun path end to end. Spends ~0.02 SOL + dev buy from the treasury.
  *
- *   npx tsx scripts/test-launch.ts --name "HushPay Test" --symbol FPTEST --uri https://.../meta.json --devbuy 0.005
+ *   npx tsx scripts/test-launch.ts --name "AdPad Test" --symbol FPTEST --uri https://.../meta.json --devbuy 0.005
  */
 import "dotenv/config";
 import { createToken } from "../src/lib/server/pumpportal";

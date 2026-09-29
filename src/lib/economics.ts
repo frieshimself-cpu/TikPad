@@ -1,15 +1,16 @@
 /** Shared economics constants (plain module: safe to import from server and client components). */
-export const CREATOR_SHARE_BPS = 8000;
-export const MILESTONES_CENTS = [500, 1000, 2000, 5000, 10000, 25000, 50000, 100000];
-export const MILESTONE_STEP_CENTS = 100000;
+/** Share of claimed creator rewards that goes into the coin's ad budget (the rest covers AdPad's costs). */
+export const AD_BUDGET_BPS = 9000;
 export const SOL_USD = 150;
 
+/** The AdPad token contract address on pump.fun. */
+export const ADPAD_CA = "91XQzRchA84EmtDcrkLAf5ZV7VaAgxMN1VgCGXDxpump";
+export const ADPAD_PUMP_URL = `https://pump.fun/coin/${ADPAD_CA}`;
 
 /** Every coin launched here is created on-chain by this wallet, so 100% of creator rewards accrue to it. */
 export const TREASURY_ADDRESS = "aCKyUCgUMfeScz1M9AsMzGZcJxB2EikTGgaftromUz1";
 /** How often the treasury claims creator rewards. */
 export const CLAIM_INTERVAL_MS = 2 * 60 * 1000;
 
-/** The HushPay token contract address on pump.fun. */
-export const HUSHPAY_CA = "91XQzRchA84EmtDcrkLAf5ZV7VaAgxMN1VgCGXDxpump";
-export const HUSHPAY_PUMP_URL = `https://pump.fun/coin/${HUSHPAY_CA}`;
+export const CAMPAIGN_TYPES = ["X promoted post", "KOL promo", "X trend push", "Telegram promo", "DEX banner"] as const;
+export type CampaignType = (typeof CAMPAIGN_TYPES)[number];

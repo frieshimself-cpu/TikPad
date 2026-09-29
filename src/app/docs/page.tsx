@@ -1,60 +1,56 @@
 import Link from "next/link";
-import { fmtUsd } from "@/lib/format";
+import { AD_BUDGET_BPS, CAMPAIGN_TYPES, CLAIM_INTERVAL_MS } from "@/lib/economics";
 import { feeTag } from "@/lib/handle";
-import { MILESTONES_CENTS, MILESTONE_STEP_CENTS } from "@/lib/economics";
 
-export const metadata = { title: "Docs — HushPay" };
+export const metadata = { title: "How it works — AdPad" };
 
 export default function DocsPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-12 sm:px-12">
-      <h1 className="text-4xl sm:text-5xl">How HushPay works</h1>
+      <h1 className="text-4xl font-extrabold sm:text-5xl">How AdPad works</h1>
       <p className="mt-3 text-muted">
-        HushPay turns pump.fun creator fees into payouts for creators on X. The creator does not need an account, a wallet, or to know the
-        token exists. Their share accrues under their handle until they sign in to collect it.
+        AdPad is a pump.fun launchpad where a coin&apos;s creator rewards pay for its own advertising. Volume funds marketing; nobody has to
+        trust a dev wallet to spend it.
       </p>
 
       <Section title="1. Launching">
         <p>
-          You fill in a name, ticker, image and the X handle that should be paid, then send one payment (dev buy + a small network reserve)
-          to the HushPay treasury. The treasury creates the token on pump.fun, buys your dev allocation, and transfers those tokens to your wallet.
+          You fill in name, ticker, image, links, optionally the coin&apos;s X account, and a dev buy. You pay dev buy + a small creation reserve
+          to the AdPad treasury in one transaction. The treasury creates the coin on pump.fun, buys your dev allocation, and sends those tokens to
+          your wallet.
         </p>
         <p>
-          The treasury is the token&apos;s on-chain <em>creator</em>. On pump.fun the creator is who receives creator fees, so every fee the token
-          generates lands in the treasury with no further setup. The token description carries a visible tag so anyone can verify the routing:
+          The treasury is the coin&apos;s on-chain <em>creator</em>. On pump.fun the creator receives creator rewards, so every reward the coin
+          earns lands with AdPad without further setup. The description carries a visible tag:
         </p>
-        <pre className="num overflow-x-auto rounded-xl border border-line bg-elev p-3 text-sm text-fg">{feeTag("handle")}</pre>
+        <pre className="mono overflow-x-auto rounded-xl border border-line bg-elev p-3 text-sm text-fg">{feeTag()}</pre>
       </Section>
 
-      <Section title="2. Attribution">
+      <Section title="2. Rewards become budget">
         <p>
-          pump.fun pools creator fees per creator wallet, not per token, so HushPay tracks trades on every registered token. When the fee router
-          claims fees, the claimed amount is split across tokens in proportion to their traded volume since the last claim, and each token&apos;s
-          share is credited to its X handle.
+          The treasury claims creator rewards every {CLAIM_INTERVAL_MS / 60000} minutes. Rewards are attributed to the coin that generated them
+          and {AD_BUDGET_BPS / 100}% is credited to that coin&apos;s ad budget. The remaining {100 - AD_BUDGET_BPS / 100}% covers AdPad&apos;s
+          claim fees, ad-account costs and operations.
         </p>
       </Section>
 
-      <Section title="3. The split">
+      <Section title="3. Campaigns">
+        <p>Once a budget clears $20, AdPad spends it on the coin&apos;s behalf. Campaign types:</p>
         <ul className="list-disc space-y-1 pl-5">
-          <li><strong>80%</strong> credited to the X creator, valued in USD at the time of the claim.</li>
-          <li><strong>20%</strong> kept by HushPay to run the router and cover payouts.</li>
+          {CAMPAIGN_TYPES.map((t) => (
+            <li key={t}>{t}</li>
+          ))}
         </ul>
-      </Section>
-
-      <Section title="4. Payouts">
-        <p>A creator&apos;s share builds until lifetime earnings cross a milestone, then the unpaid balance is sent in SOL to the wallet they linked. Milestones:</p>
-        <p className="num text-sm">{MILESTONES_CENTS.map(fmtUsd).join(" → ")} → every {fmtUsd(MILESTONE_STEP_CENTS)} after that</p>
         <p>
-          To collect, a creator signs in with X on the <Link href="/claim" className="underline">claim page</Link>. X returns the verified
-          handle, which is matched against the handle on the token. They then link any Solana address.
+          Every campaign, its spend and its results are listed on the <Link href="/campaigns" className="underline">campaigns page</Link> and on
+          the coin&apos;s own page. Launchers don&apos;t manage anything; holders can see where every dollar went.
         </p>
       </Section>
 
-      <Section title="About this preview">
+      <Section title="What is live today">
         <p>
-          Launching is live: coins are created on pump.fun with the HushPay treasury as creator, and the treasury claims rewards every two
-          minutes. The feed, leaderboard and creator dashboard are still a browser-side preview with fictional handles until the payout
-          backend is connected.
+          Launching is live: coins are created on pump.fun with the AdPad treasury as creator, and the treasury claims rewards every two minutes.
+          The campaign pages are a browser-side preview with fictional coins until the ad backend that books and reports campaigns is connected.
         </p>
       </Section>
     </div>
@@ -64,7 +60,7 @@ export default function DocsPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mt-10">
-      <h2 className="text-xl font-semibold">{title}</h2>
+      <h2 className="text-2xl font-bold">{title}</h2>
       <div className="mt-3 space-y-3 leading-relaxed text-muted">{children}</div>
     </section>
   );

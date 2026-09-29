@@ -9,14 +9,14 @@ import { runClaim } from "./claim";
 import { isLaunchConfigured } from "./config";
 
 declare global {
-  var __hushpayLastClaim: number | undefined;
+  var __adpadLastClaim: number | undefined;
 }
 
 export function scheduleOpportunisticClaim() {
   if (!isLaunchConfigured() || process.env.NEXT_PHASE === "phase-production-build") return;
-  const last = globalThis.__hushpayLastClaim ?? 0;
+  const last = globalThis.__adpadLastClaim ?? 0;
   if (Date.now() - last < CLAIM_INTERVAL_MS) return;
-  globalThis.__hushpayLastClaim = Date.now();
+  globalThis.__adpadLastClaim = Date.now();
   after(async () => {
     try {
       await runClaim((s) => console.log("[autoclaim]", s));

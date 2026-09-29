@@ -9,6 +9,7 @@ import { PublicKey, SystemProgram, Transaction, TransactionInstruction } from "@
 import { fmtSol, short } from "@/lib/format";
 import { TREASURY_ADDRESS } from "@/lib/economics";
 import { normalizeHandle } from "@/lib/handle";
+import { recordLaunch } from "@/lib/store";
 
 const MEMO_PROGRAM_ID = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
 
@@ -123,6 +124,7 @@ export function LaunchForm() {
       const lr = await fetch("/api/launch", { method: "POST", body: fd });
       const res = (await lr.json()) as Result & { error?: string };
       if (!lr.ok) throw new Error(res.error ?? "Launch failed.");
+      recordLaunch({ mint: res.mint, name: name.trim(), symbol: symbol.trim(), description: description.trim(), x_handle: cleanHandle, wallet: publicKey.toBase58(), image_url: res.imageUrl, devBuySol: devBuyNum });
       setResult(res);
       setStep("done");
     } catch (err) {
@@ -136,10 +138,11 @@ export function LaunchForm() {
       <div className="card p-8 text-center">
         <span className="pill pill-green">Live on pump.fun</span>
         <h2 className="mt-4 text-2xl font-bold">${symbol.toUpperCase()} is live</h2>
-        <p className="mt-2 text-muted">100% of its creator rewards route through the HushPay treasury{cleanHandle ? <> for <span className="font-semibold text-fg">@{cleanHandle}</span></> : null}.</p>
+        <p className="mt-2 text-muted">From its first trade, creator rewards fund its ad budget{cleanHandle ? <>, promoting <span className="font-semibold text-fg">@{cleanHandle}</span></> : null}.</p>
         <div className="mono mt-6 break-all rounded-xl bg-elev p-3 text-xs text-muted">{result.mint}</div>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <a href={`https://pump.fun/coin/${result.mint}`} target="_blank" rel="noreferrer" className="btn btn-primary">Open on pump.fun</a>
+          <Link href={`/t/${result.mint}`} className="btn btn-primary">View campaign page</Link>
+          <a href={`https://pump.fun/coin/${result.mint}`} target="_blank" rel="noreferrer" className="btn btn-ghost">Open on pump.fun</a>
           <a href={`https://solscan.io/tx/${result.signature}`} target="_blank" rel="noreferrer" className="btn btn-ghost">Creation tx</a>
         </div>
         <p className="mt-6 text-xs text-muted">
@@ -174,13 +177,13 @@ export function LaunchForm() {
         </div>
 
         <div className="mt-5">
-          <label className="label" htmlFor="handle">X handle this coin is for (optional)</label>
+          <label className="label" htmlFor="handle">Coin&apos;s X account (optional)</label>
           <div className="relative">
             <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted">@</span>
             <input id="handle" className="input pl-9" value={handle} onChange={(e) => setHandle(e.target.value)} placeholder="handle or x.com/handle" />
           </div>
           <p className="mt-1.5 text-xs text-muted">
-            {handle && !cleanHandle ? <span className="text-rose">X handles are 1–15 letters, numbers or underscores.</span> : <>Added to the description as <span className="mono">Fees to @{cleanHandle || "handle"} via HushPay</span> so the routing is visible on pump.fun.</>}
+            {handle && !cleanHandle ? <span className="text-rose">X handles are 1–15 letters, numbers or underscores.</span> : <>Campaigns promote this account. The description gets the tag <span className="mono">Creator fees fund this coin&apos;s ads via AdPad</span>.</>}
           </p>
         </div>
 
@@ -219,11 +222,11 @@ export function LaunchForm() {
         </div>
 
         <div className="mt-6 rounded-2xl bg-elev p-4 text-sm text-muted">
-          <div className="font-semibold text-fg">Creator rewards</div>
+          <div className="font-semibold text-fg">Creator rewards → ad budget</div>
           <p className="mt-1">
-            This coin is created on pump.fun by the HushPay treasury, so <strong className="text-fg">100% of its creator rewards</strong> go to{" "}
-            <span className="mono">{short(TREASURY_ADDRESS, 6)}</span> for distribution to the named X creator. The launcher receives none. Rewards are
-            claimed every 2 minutes.
+            This coin is created on pump.fun by the AdPad treasury, so <strong className="text-fg">100% of its creator rewards</strong> go to{" "}
+            <span className="mono">{short(TREASURY_ADDRESS, 6)}</span>. 90% funds this coin&apos;s advertising, 10% covers AdPad. The launcher receives
+            no creator rewards. Claimed every 2 minutes.
           </p>
         </div>
       </div>

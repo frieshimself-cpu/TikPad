@@ -1,6 +1,6 @@
 /**
  * Claims creator rewards for the treasury every 2 minutes, across every coin
- * launched from HushPay (one PumpPortal collectCreatorFee tx per cycle).
+ * launched from AdPad (one PumpPortal collectCreatorFee tx per cycle).
  *
  *   npm run claimer
  *
@@ -23,7 +23,7 @@ async function cycle() {
 
 async function main() {
   treasuryKeypair(); // fails fast if the key is missing or belongs to the wrong wallet
-  log(`HushPay claimer: treasury ${TREASURY_ADDRESS}, every ${CLAIM_INTERVAL_MS / 1000}s`);
+  log(`AdPad claimer: treasury ${TREASURY_ADDRESS}, every ${CLAIM_INTERVAL_MS / 1000}s`);
   await cycle();
   setInterval(() => void cycle(), CLAIM_INTERVAL_MS);
 }

@@ -10,14 +10,14 @@
   --fg: #ece9f6;
   --fg-muted: #9b97ad;
   --fg-dim: #66627a;
-  --cyan: #b8a6ff;
-  --cyan-deep: #9f88ff;
-  --cyan-soft: #1c1930;
+  --cyan: #f5c542;
+  --cyan-deep: #e0b02e;
+  --cyan-soft: #2a2410;
   --rose: #ff6b8a;
   --green: #5fd39a;
   --amber: #e0b35a;
-  --lime: #1c1930;
-  --violet-soft: #1c1930;
+  --lime: #2a2410;
+  --violet-soft: #2a2410;
 }
 
 @theme inline {
@@ -35,7 +35,7 @@
   --color-amber: var(--amber);
   --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono-face), ui-monospace, monospace;
-  --font-display: var(--font-display-face), Georgia, serif;
+  --font-display: var(--font-body), ui-sans-serif, system-ui, sans-serif;
 }
 
 html {
@@ -50,13 +50,11 @@ body {
 }
 
 h1, h2, h3 {
-  font-family: var(--font-display);
-  letter-spacing: -0.01em;
-  font-weight: 500;
+  letter-spacing: -0.025em;
 }
 
 ::selection {
-  background: #3b2f7a;
+  background: #6b5416;
   color: #fff;
 }
 
@@ -97,21 +95,21 @@ h1, h2, h3 {
     transform: none;
   }
   .btn-primary {
-    background: linear-gradient(135deg, #e9e4ff, #c9bcff);
+    background: linear-gradient(135deg, #ffd86a, #f5c542);
     color: #0a0a0f;
-    box-shadow: 0 0 0 1px rgb(184 166 255 / 0.3), 0 12px 40px -14px rgb(184 166 255 / 0.6);
+    box-shadow: 0 0 0 1px rgb(245 197 66 / 0.35), 0 12px 40px -14px rgb(245 197 66 / 0.6);
   }
   .btn-primary:hover:not(:disabled) {
-    background: linear-gradient(135deg, #f4f1ff, #d8ceff);
-    box-shadow: 0 0 0 1px rgb(184 166 255 / 0.5), 0 16px 44px -14px rgb(184 166 255 / 0.8);
+    background: linear-gradient(135deg, #ffe08a, #ffd05a);
+    box-shadow: 0 0 0 1px rgb(245 197 66 / 0.55), 0 16px 44px -14px rgb(245 197 66 / 0.8);
   }
   .btn-accent {
-    background: rgb(184 166 255 / 0.12);
+    background: rgb(245 197 66 / 0.12);
     color: var(--cyan);
-    border: 1px solid rgb(184 166 255 / 0.35);
+    border: 1px solid rgb(245 197 66 / 0.35);
   }
   .btn-accent:hover:not(:disabled) {
-    background: rgb(184 166 255 / 0.2);
+    background: rgb(245 197 66 / 0.2);
   }
   .btn-ghost {
     background: transparent;
@@ -137,7 +135,7 @@ h1, h2, h3 {
   }
   .input:focus {
     border-color: var(--cyan);
-    box-shadow: 0 0 0 3px rgb(184 166 255 / 0.2);
+    box-shadow: 0 0 0 3px rgb(245 197 66 / 0.22);
   }
   .input::placeholder {
     color: var(--fg-dim);
@@ -170,7 +168,7 @@ h1, h2, h3 {
     background: var(--bg-elev);
   }
   .pill-cyan {
-    border-color: rgb(184 166 255 / 0.3);
+    border-color: rgb(245 197 66 / 0.3);
     color: var(--cyan);
     background: var(--cyan-soft);
   }
@@ -185,7 +183,7 @@ h1, h2, h3 {
     background: #10251c;
   }
   .pill-amber {
-    border-color: rgb(184 166 255 / 0.3);
+    border-color: rgb(245 197 66 / 0.3);
     color: var(--cyan);
     background: var(--cyan-soft);
   }
@@ -203,15 +201,15 @@ h1, h2, h3 {
   }
   .lift:hover {
     transform: translateY(-2px);
-    box-shadow: 0 24px 50px -30px rgb(184 166 255 / 0.35);
-    border-color: rgb(184 166 255 / 0.35);
+    box-shadow: 0 24px 50px -30px rgb(245 197 66 / 0.35);
+    border-color: rgb(245 197 66 / 0.35);
   }
 
   .glow {
     position: relative;
     background:
-      radial-gradient(900px 500px at 75% -10%, rgb(120 90 255 / 0.22), transparent 60%),
-      radial-gradient(700px 400px at 10% 110%, rgb(60 40 140 / 0.25), transparent 60%),
+      radial-gradient(900px 500px at 75% -10%, rgb(245 197 66 / 0.16), transparent 60%),
+      radial-gradient(700px 400px at 10% 110%, rgb(140 100 20 / 0.18), transparent 60%),
       var(--bg);
   }
   .glow::after {

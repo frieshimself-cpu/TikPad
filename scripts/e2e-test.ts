@@ -62,10 +62,10 @@ async function main() {
   const fd = new FormData();
   fd.set("quoteId", q.id);
   fd.set("paymentSig", paymentSig);
-  fd.set("name", "HushPay E2E");
+  fd.set("name", "AdPad E2E");
   fd.set("symbol", "HUSHE2E");
-  fd.set("description", "End-to-end test of the HushPay launch flow.");
-  fd.set("handle", "hushpay");
+  fd.set("description", "End-to-end test of the AdPad launch flow.");
+  fd.set("handle", "adpad");
   fd.set("wallet", wallet);
   fd.set("image", new Blob([readFileSync("public/meta/fptest.png")], { type: "image/png" }), "coin.png");
   const lr = await fetch(`${base}/api/launch`, { method: "POST", body: fd });

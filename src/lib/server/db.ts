@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS claims (
 `;
 
 declare global {
-  var __hushpayDb: Promise<Client> | undefined;
+  var __adpadDb: Promise<Client> | undefined;
 }
 
 /**
@@ -98,8 +98,8 @@ export const dbAvailable = () => dbUrl() !== null;
 export const isEphemeralDb = () => !dbAvailable();
 
 export function db(): Promise<Client> {
-  if (globalThis.__hushpayDb) return globalThis.__hushpayDb;
-  globalThis.__hushpayDb = (async () => {
+  if (globalThis.__adpadDb) return globalThis.__adpadDb;
+  globalThis.__adpadDb = (async () => {
     const u = dbUrl();
     if (!u) throw new Error("No database configured (set TURSO_DATABASE_URL).");
     let c: Client;
@@ -117,7 +117,7 @@ export function db(): Promise<Client> {
     await c.executeMultiple(SCHEMA);
     return c;
   })();
-  return globalThis.__hushpayDb;
+  return globalThis.__adpadDb;
 }
 
 async function all<T>(sql: string, args: InArgs = []): Promise<T[]> {

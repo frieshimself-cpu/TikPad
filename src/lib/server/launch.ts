@@ -21,7 +21,7 @@ export interface LaunchInput {
   name: string;
   symbol: string;
   description: string;
-  /** X handle this coin is for (metadata only; rewards always accrue to the treasury). */
+  /** The coin's X account, promoted by its campaigns (metadata only; rewards always accrue to the treasury). */
   handle: string | null;
   wallet: string;
   image: { bytes: Uint8Array; type: string; name: string };
@@ -49,7 +49,7 @@ export async function quoteLaunch(wallet: string, devBuySol: number) {
 }
 
 /** Mint keypair derived from the payment signature: one payment can only ever create one coin. */
-const mintFor = (paymentSig: string) => Keypair.fromSeed(createHash("sha256").update("hushpay:mint:" + paymentSig).digest());
+const mintFor = (paymentSig: string) => Keypair.fromSeed(createHash("sha256").update("adpad:mint:" + paymentSig).digest());
 
 async function hostMetadata(input: LaunchInput, description: string) {
   const meta = {
@@ -83,7 +83,7 @@ export async function executeLaunch(quoteId: string, paymentSig: string, input: 
 
   await verifyPayment(paymentSig, input.wallet, q.t, q.n);
 
-  const description = [input.description.trim(), input.handle ? feeTag(input.handle) : ""].filter(Boolean).join("\n\n");
+  const description = [input.description.trim(), input.handle ? `X: @${input.handle}` : "", feeTag()].filter(Boolean).join("\n\n");
   const { imageUrl, metadataUri } = await hostMetadata(input, description);
   const { mint, signature } = await createToken({
     name: input.name,

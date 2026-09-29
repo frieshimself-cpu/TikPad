@@ -6,8 +6,8 @@ export function Footer() {
     <footer className="mt-16 border-t border-line">
       <div className="mx-auto grid max-w-6xl gap-8 px-6 py-10 text-sm sm:px-12 md:grid-cols-3">
         <div>
-          <div className="font-bold">HushPay</div>
-          <p className="mt-2 text-muted">Token creator fees, routed to creators on X. Built on pump.fun and Solana. Not affiliated with X or pump.fun.</p>
+          <div className="font-bold">AdPad</div>
+          <p className="mt-2 text-muted">Coins that buy their own ads. Built on pump.fun and Solana. Not affiliated with X or pump.fun.</p>
         </div>
         <div>
           <div className="font-bold">Token</div>
@@ -16,7 +16,7 @@ export function Footer() {
         <nav className="flex flex-col gap-1.5 text-muted">
           <div className="font-bold text-fg">Pages</div>
           <Link href="/launch" className="hover:text-cyan">Launch</Link>
-          <Link href="/claim" className="hover:text-cyan">Claim</Link>
+          <Link href="/campaigns" className="hover:text-cyan">Campaigns</Link>
           <Link href="/docs" className="hover:text-cyan">How it works</Link>
           <a href="https://github.com/frieshimself-cpu/TikPad" className="hover:text-cyan" target="_blank" rel="noreferrer">GitHub</a>
         </nav>

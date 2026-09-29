@@ -2,9 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Avatar } from "./Avatar";
 import { TokenImage } from "./TokenImage";
-import { Verified } from "./Verified";
 import { fmtSol, fmtUsd, timeAgo } from "@/lib/format";
 import { feed, getToken, startSimulation, stats, type FeedItem, type State } from "@/lib/store";
 
@@ -38,36 +36,35 @@ export function LiveFeed({ state, compact = false }: { state: State; compact?: b
           Live
         </div>
         <span className="num text-xs text-dim">
-          {st.payouts} payouts · {fmtUsd(st.paid_cents)} sent
+          {st.campaigns} campaigns · {fmtUsd(st.spent_cents)} spent on ads
         </span>
       </div>
       <ul className="divide-y divide-line">
-        {items.length === 0 && <li className="px-5 py-10 text-center text-sm text-dim">Nothing yet. Launch the first token.</li>}
         {items.map((it) => {
-          const tok = it.mint ? getToken(state, it.mint) : undefined;
+          const tok = getToken(state, it.mint);
           return (
-            <li key={it.id} className={`flex items-center gap-4 px-5 py-3.5 transition hover:bg-bg/60 ${fresh.has(it.id) ? "feed-in" : ""}`}>
+            <li key={it.id} className={`flex items-center gap-4 px-5 py-3.5 transition hover:bg-elev/60 ${fresh.has(it.id) ? "feed-in" : ""}`}>
               <div className="relative shrink-0">
-                {tok ? <TokenImage src={tok.image_url} symbol={tok.symbol} size={40} /> : <Avatar handle={it.handle} size={40} />}
+                <TokenImage src={tok?.image_url} symbol={it.symbol} size={40} />
                 <span
-                  className={`absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-card text-[10px] text-white ${
-                    it.kind === "payout" ? "bg-green" : it.kind === "launch" ? "bg-cyan" : "bg-fg"
+                  className={`absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-card text-[10px] font-bold ${
+                    it.kind === "campaign" ? "bg-cyan text-[#0a0a0f]" : it.kind === "launch" ? "bg-green text-[#0a0a0f]" : "bg-elev text-fg"
                   }`}
                 >
-                  {it.kind === "payout" ? "$" : it.kind === "launch" ? "↑" : "+"}
+                  {it.kind === "campaign" ? "Ad" : it.kind === "launch" ? "↑" : "+"}
                 </span>
               </div>
               <div className="min-w-0 flex-1">
-                <FeedLine it={it} />
+                <Line it={it} />
                 <div className="num mt-0.5 text-xs text-dim">{timeAgo(it.ts)}</div>
               </div>
               <div className="num text-right">
                 {it.kind === "launch" ? (
-                  <span className="pill pill-cyan">launched</span>
+                  <span className="pill pill-green">launched</span>
                 ) : (
                   <>
-                    <div className={`font-semibold ${it.kind === "payout" ? "text-green" : ""}`}>{fmtUsd(it.usd_cents)}</div>
-                    <div className="text-xs text-dim">{fmtSol(it.lamports)}</div>
+                    <div className={`font-semibold ${it.kind === "campaign" ? "text-cyan" : ""}`}>{it.kind === "campaign" ? "−" : "+"}{fmtUsd(it.usd_cents)}</div>
+                    {it.lamports > 0 && <div className="text-xs text-dim">{fmtSol(it.lamports)}</div>}
                   </>
                 )}
               </div>
@@ -79,22 +76,13 @@ export function LiveFeed({ state, compact = false }: { state: State; compact?: b
   );
 }
 
-function FeedLine({ it }: { it: FeedItem }) {
-  const who = (
-    <Link href={`/c/${it.handle}`} className="inline-flex items-center gap-1 font-semibold hover:underline">
-      @{it.handle} <Verified size={13} />
+function Line({ it }: { it: FeedItem }) {
+  const tok = (
+    <Link href={`/t/${it.mint}`} className="num font-semibold hover:underline">
+      ${it.symbol}
     </Link>
   );
-  const tok = it.mint ? (
-    <Link href={`/t/${it.mint}`} className="num font-semibold text-[#0096d6] hover:underline">
-      ${it.symbol ?? "?"}
-    </Link>
-  ) : null;
-  if (it.kind === "payout") return <div className="truncate text-sm">Paid out to {who}</div>;
-  if (it.kind === "launch") return <div className="truncate text-sm">{tok} launched for {who}</div>;
-  return (
-    <div className="truncate text-sm">
-      {tok} fees credited to {who}
-    </div>
-  );
+  if (it.kind === "campaign") return <div className="truncate text-sm">{tok} · {it.label} ran</div>;
+  if (it.kind === "launch") return <div className="truncate text-sm">{tok} launched, fees now fund its ads</div>;
+  return <div className="truncate text-sm">{tok} creator fees → ad budget</div>;
 }
