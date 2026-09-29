@@ -13,10 +13,10 @@ export function CampaignsView() {
   const campaigns = [...state.campaigns].sort((a, b) => b.ts - a.ts);
 
   return (
-    <div className="grid gap-8 xl:grid-cols-[1fr_380px]">
+    <div className="space-y-8">
       <section className="card overflow-hidden">
         <h2 className="border-b border-line px-5 py-3 text-sm font-semibold">Ad budgets by coin</h2>
-        <ul className="divide-y divide-line">
+        <ul className="grid divide-y divide-line md:grid-cols-2 md:divide-y-0 md:[&>li:nth-child(odd)]:border-r md:[&>li]:border-b md:[&>li]:border-line">
           {coins.map((t) => {
             const pct = t.earned_cents ? Math.min(100, Math.round((t.spent_cents / t.earned_cents) * 100)) : 0;
             return (
@@ -40,9 +40,9 @@ export function CampaignsView() {
           })}
         </ul>
       </section>
-      <section className="card overflow-hidden self-start">
+      <section className="card overflow-hidden">
         <h2 className="border-b border-line px-5 py-3 text-sm font-semibold">Recent campaigns</h2>
-        <ul className="divide-y divide-line">
+        <ul className="grid divide-y divide-line md:grid-cols-2 md:divide-y-0 md:[&>li:nth-child(odd)]:border-r md:[&>li]:border-b md:[&>li]:border-line">
           {campaigns.slice(0, 20).map((c) => (
             <li key={c.id} className="flex items-center justify-between px-5 py-3 text-sm">
               <div className="min-w-0">

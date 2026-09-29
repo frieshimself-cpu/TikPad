@@ -157,7 +157,7 @@ export function LaunchForm() {
   }
 
   return (
-    <form onSubmit={submit} className="pb-32">
+    <form onSubmit={submit} className="grid gap-8 lg:grid-cols-[1fr_360px]">
       {status && !status.launchEnabled && (
         <div className="mb-6 rounded-2xl border border-line bg-elev p-4 text-sm text-muted">
           Launching is not enabled on this server yet. The operator needs to set <span className="mono">TREASURY_SECRET_KEY</span>.
@@ -231,41 +231,41 @@ export function LaunchForm() {
         </div>
       </div>
 
-      {error && <div className="mt-4 rounded-2xl bg-[#fde8ef] p-4 text-sm text-rose">{error}</div>}
-
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-card/95 backdrop-blur lg:left-[260px]">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4 sm:px-12">
-          <dl className="num flex flex-wrap gap-x-8 gap-y-1 text-sm">
+      <aside className="lg:sticky lg:top-24 lg:self-start">
+        <div className="card p-6">
+          <h3 className="font-bold">Summary</h3>
+          <dl className="num mt-4 space-y-2 text-sm">
             <Row k="Dev buy" v={fmtSol(devBuyNum * 1e9)} />
-            <Row k="Creation" v={fmtSol(networkLamports)} />
+            <Row k="Creation reserve" v={fmtSol(networkLamports)} />
             {feeLamports > 0 && <Row k="Fee" v={fmtSol(feeLamports)} />}
-            <Row k="You pay" v={fmtSol(total)} strong />
+            <div className="border-t border-line pt-2">
+              <Row k="You pay" v={fmtSol(total)} strong />
+            </div>
           </dl>
-          <div className="flex items-center gap-4">
-            <span className="hidden text-xs text-muted sm:block">
-              Paid to the treasury, which creates the coin. <Link href="/docs" className="underline">Details</Link>
-            </span>
-            <button type="submit" className="btn btn-primary h-12 px-7 text-base" disabled={!canSubmit && !!publicKey}>
-              {!publicKey
-                ? "Connect wallet"
-                : step === "quoting"
-                  ? "Preparing…"
-                  : step === "paying"
-                    ? "Confirm in wallet…"
-                    : step === "launching"
-                      ? "Creating on pump.fun…"
-                      : "Pay & launch"}
-            </button>
-          </div>
+          <p className="mt-4 text-xs leading-relaxed text-muted">
+            Paid to the AdPad treasury, which creates the coin as its on-chain creator. <Link href="/docs" className="underline">Details</Link>
+          </p>
+          {error && <div className="mt-4 rounded-xl bg-[#2a1420] p-3 text-sm text-rose">{error}</div>}
+          <button type="submit" className="btn btn-primary mt-5 h-12 w-full text-base" disabled={!canSubmit && !!publicKey}>
+            {!publicKey
+              ? "Connect wallet"
+              : step === "quoting"
+                ? "Preparing…"
+                : step === "paying"
+                  ? "Confirm in wallet…"
+                  : step === "launching"
+                    ? "Creating on pump.fun…"
+                    : "Pay & launch"}
+          </button>
         </div>
-      </div>
+      </aside>
     </form>
   );
 }
 
 function Row({ k, v, strong }: { k: string; v: string; strong?: boolean }) {
   return (
-    <div className="flex gap-2">
+    <div className="flex justify-between gap-2">
       <dt className="text-muted">{k}</dt>
       <dd className={strong ? "font-bold" : ""}>{v}</dd>
     </div>

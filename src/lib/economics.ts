@@ -4,7 +4,7 @@ export const AD_BUDGET_BPS = 9000;
 export const SOL_USD = 150;
 
 /** The AdPad token contract address on pump.fun. */
-export const ADPAD_CA = "91XQzRchA84EmtDcrkLAf5ZV7VaAgxMN1VgCGXDxpump";
+export const ADPAD_CA = "L4SwHrNGZ4V8ndL3AeJkvKbH9eSdV71YS32MaRqpump";
 export const ADPAD_PUMP_URL = `https://pump.fun/coin/${ADPAD_CA}`;
 
 /** Every coin launched here is created on-chain by this wallet, so 100% of creator rewards accrue to it. */

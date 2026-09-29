@@ -6,7 +6,7 @@ export const metadata = { title: "How it works — AdPad" };
 
 export default function DocsPage() {
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12 sm:px-12">
+    <div className="mx-auto max-w-3xl px-5 py-12 sm:px-8">
       <h1 className="text-4xl font-extrabold sm:text-5xl">How AdPad works</h1>
       <p className="mt-3 text-muted">
         AdPad is a pump.fun launchpad where a coin&apos;s creator rewards pay for its own advertising. Volume funds marketing; nobody has to
