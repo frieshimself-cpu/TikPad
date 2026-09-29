@@ -1,6 +1,6 @@
 import { ClaimPanel } from "@/components/ClaimPanel";
 
-export const metadata = { title: "Claim your earnings — FansPad" };
+export const metadata = { title: "Claim your earnings — RePaid" };
 
 export default function ClaimPage() {
   return (

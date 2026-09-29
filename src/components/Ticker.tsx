@@ -1,17 +1,17 @@
-import { FANSPAD_CA, FANSPAD_PUMP_URL } from "@/lib/economics";
+import { REPAID_CA, REPAID_PUMP_URL } from "@/lib/economics";
 
 /** Slim announcement bar. */
 export function Ticker() {
   return (
     <a
-      href={FANSPAD_PUMP_URL}
+      href={REPAID_PUMP_URL}
       target="_blank"
       rel="noreferrer"
-      className="flex items-center justify-center gap-3 border-b border-line bg-[#e6f6fd] px-4 py-2 text-xs font-medium text-[#0096d6] hover:bg-[#d8f1fc]"
+      className="flex items-center justify-center gap-3 border-b border-line bg-fg px-4 py-2 text-xs font-medium text-white hover:bg-[#272c30]"
     >
-      <span className="rounded-full bg-cyan px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Live</span>
-      <span>$FANSPAD is on pump.fun</span>
-      <span className="mono hidden truncate text-[#0096d6]/70 sm:inline">{FANSPAD_CA}</span>
+      <span className="rounded-full bg-white px-2 py-0.5 text-fg text-[10px] font-bold uppercase tracking-wide">Live</span>
+      <span>$REPAID is on pump.fun</span>
+      <span className="mono hidden truncate text-white/60 sm:inline">{REPAID_CA}</span>
       <span aria-hidden>→</span>
     </a>
   );

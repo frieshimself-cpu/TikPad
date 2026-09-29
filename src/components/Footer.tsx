@@ -6,8 +6,8 @@ export function Footer() {
     <footer className="mt-16 border-t border-line">
       <div className="mx-auto grid max-w-6xl gap-8 px-6 py-10 text-sm sm:px-12 md:grid-cols-3">
         <div>
-          <div className="font-bold">FansPad</div>
-          <p className="mt-2 text-muted">Token creator fees, routed to OnlyFans creators. Built on pump.fun and Solana. Not affiliated with OnlyFans or pump.fun.</p>
+          <div className="font-bold">RePaid</div>
+          <p className="mt-2 text-muted">Token creator fees, routed to creators on X. Built on pump.fun and Solana. Not affiliated with X or pump.fun.</p>
         </div>
         <div>
           <div className="font-bold">Token</div>

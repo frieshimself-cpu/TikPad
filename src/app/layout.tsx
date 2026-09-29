@@ -11,8 +11,8 @@ const body = Inter({ variable: "--font-body", subsets: ["latin"], weight: ["400"
 const mono = JetBrains_Mono({ variable: "--font-mono-face", subsets: ["latin"], weight: ["400", "600"] });
 
 export const metadata: Metadata = {
-  title: "FansPad — Token fees for OnlyFans creators",
-  description: "Launch a token on pump.fun, point its creator fees at any OnlyFans creator, and FansPad pays them automatically.",
+  title: "RePaid — Token fees for creators on X",
+  description: "Launch a token on pump.fun, point its creator fees at any X creator, and RePaid pays them automatically.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

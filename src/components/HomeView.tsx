@@ -11,9 +11,9 @@ import { fmtUsd } from "@/lib/format";
 import { leaderboard, stats, useStore } from "@/lib/store";
 
 const STEPS = [
-  ["Launch", "Name, ticker, image, and the OnlyFans username that should get paid. FansPad creates the token on pump.fun with its treasury as the on-chain creator."],
-  ["Fees accrue", "Every pump.fun trade pays a creator fee. The treasury is the creator, so the fees land with FansPad and are attributed to the token that produced them."],
-  ["Creator gets paid", "80% of every claim is credited to the username. Once it crosses $5, then $10, $20, $50 and up, it's sent to the wallet the creator linked after verifying their profile."],
+  ["Launch", "Name, ticker, image, and the X handle that should get paid. RePaid creates the token on pump.fun with its treasury as the on-chain creator."],
+  ["Fees accrue", "Every pump.fun trade pays a creator fee. The treasury is the creator, so the fees land with RePaid and are attributed to the token that produced them."],
+  ["Creator gets paid", "80% of every claim is credited to the username. Once it crosses $5, then $10, $20, $50 and up, it's sent to the wallet the creator linked after signing in with X."],
 ];
 
 export function HomeView() {
@@ -26,12 +26,12 @@ export function HomeView() {
       <section className="glow px-6 pb-16 pt-14 sm:px-12 lg:pt-20">
         <div className="mx-auto grid max-w-6xl items-center gap-14 xl:grid-cols-[1.1fr_0.9fr]">
           <div>
-            <span className="pill pill-cyan">pump.fun · Solana · OnlyFans</span>
+            <span className="pill pill-cyan">The Paid model, rebuilt for X</span>
             <h1 className="mt-6 max-w-2xl text-5xl font-extrabold leading-[1.02] sm:text-6xl">
-              Token fees, paid to <span className="text-cyan">OnlyFans</span> creators.
+              Token fees, paid to creators on <span className="text-cyan">X</span>.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
-              Launch a token, point its creator fees at any OnlyFans creator, and FansPad pays them automatically. They don&apos;t need to do
+              Launch a token, point its creator fees at any X handle, and RePaid pays them automatically. They don&apos;t need to do
               anything until they want to collect.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -123,13 +123,13 @@ export function HomeView() {
       )}
 
       <section className="px-6 py-16 sm:px-12">
-        <div className="mx-auto max-w-6xl rounded-3xl bg-[linear-gradient(135deg,#00aff0,#38bdf8)] px-8 py-12 text-white sm:px-12">
+        <div className="mx-auto max-w-6xl rounded-3xl bg-fg px-8 py-12 text-white sm:px-12">
           <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
             <div>
               <h3 className="text-3xl font-bold">Is a token paying you?</h3>
-              <p className="mt-2 max-w-lg text-white/85">Verify your OnlyFans profile, link a Solana wallet, and everything credited to your username is sent to you.</p>
+              <p className="mt-2 max-w-lg text-white/85">Sign in with X, link a Solana wallet, and everything credited to your handle is sent to you.</p>
             </div>
-            <Link href="/claim" className="btn h-12 bg-white px-7 text-base text-[#0096d6] hover:bg-[#f0fafe]">Claim your earnings</Link>
+            <Link href="/claim" className="btn h-12 bg-white px-7 text-base text-fg hover:bg-[#f0f3f5]">Claim your earnings</Link>
           </div>
         </div>
       </section>

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
 import { WalletButton } from "./WalletButton";
 import { ContractAddress } from "./ContractAddress";
-import { FANSPAD_PUMP_URL } from "@/lib/economics";
+import { REPAID_PUMP_URL } from "@/lib/economics";
 
 const LINKS = [
   ["/", "Home", "M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"],
@@ -20,7 +20,7 @@ export function Sidebar() {
     <>
       <aside className="sticky top-0 hidden h-screen flex-col border-r border-line bg-card lg:flex">
         <div className="px-7 pb-6 pt-7">
-          <Link href="/" aria-label="FansPad home"><Logo size={28} /></Link>
+          <Link href="/" aria-label="RePaid home"><Logo size={28} /></Link>
         </div>
         <nav className="flex flex-col gap-0.5 px-4">
           {LINKS.map(([href, label, d]) => {
@@ -30,7 +30,7 @@ export function Sidebar() {
                 key={href}
                 href={href}
                 className={`flex items-center gap-3 rounded-full px-4 py-2.5 text-[15px] font-medium transition ${
-                  active ? "bg-[#e6f6fd] font-semibold text-[#0096d6]" : "text-fg hover:bg-elev"
+                  active ? "bg-elev font-semibold text-fg" : "text-fg hover:bg-elev"
                 }`}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -40,11 +40,11 @@ export function Sidebar() {
               </Link>
             );
           })}
-          <a href={FANSPAD_PUMP_URL} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-full px-4 py-2.5 text-[15px] font-medium text-fg transition hover:bg-elev">
+          <a href={REPAID_PUMP_URL} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-full px-4 py-2.5 text-[15px] font-medium text-fg transition hover:bg-elev">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-13v10M9 10.5h4.5a1.75 1.75 0 0 1 0 3.5H10a1.75 1.75 0 0 0 0 3.5h5" />
             </svg>
-            $FANSPAD
+            $REPAID
           </a>
         </nav>
         <div className="px-4 pt-6">
@@ -57,7 +57,7 @@ export function Sidebar() {
       </aside>
 
       <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-line bg-card/90 px-4 backdrop-blur lg:hidden">
-        <Link href="/" aria-label="FansPad home"><Logo /></Link>
+        <Link href="/" aria-label="RePaid home"><Logo /></Link>
         <nav className="flex items-center gap-4 text-sm font-medium text-muted">
           {LINKS.slice(1, 3).map(([href, label]) => (
             <Link key={href} href={href} className="hover:text-fg">{label}</Link>

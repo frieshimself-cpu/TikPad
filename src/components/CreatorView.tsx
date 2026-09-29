@@ -31,7 +31,7 @@ export function CreatorView({ handle: raw }: { handle: string }) {
             <h1 className="flex items-center gap-2 text-2xl font-bold">@{handle} <Verified size={22} /></h1>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
               {creator?.display_name && creator.display_name !== handle && <span>{creator.display_name}</span>}
-              <a href={profileUrl(handle)} target="_blank" rel="noreferrer" className="hover:text-fg hover:underline">onlyfans.com/{handle} ↗</a>
+              <a href={profileUrl(handle)} target="_blank" rel="noreferrer" className="hover:text-fg hover:underline">x.com/{handle} ↗</a>
               {linked ? <span className="pill pill-green">wallet linked</span> : <span className="pill">unclaimed</span>}
             </div>
           </div>

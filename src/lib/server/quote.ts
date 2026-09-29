@@ -15,7 +15,7 @@ export interface QuotePayload {
 }
 
 function secret() {
-  return createHash("sha256").update("fanspad-quote:" + serverConfig.treasurySecretKey).digest();
+  return createHash("sha256").update("repaid-quote:" + serverConfig.treasurySecretKey).digest();
 }
 
 export function signQuote(p: QuotePayload): string {

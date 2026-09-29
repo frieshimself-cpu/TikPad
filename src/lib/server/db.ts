@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS claims (
 `;
 
 declare global {
-  var __fanspadDb: Promise<Client> | undefined;
+  var __repaidDb: Promise<Client> | undefined;
 }
 
 export function dbUrl() {
@@ -93,15 +93,15 @@ export function dbUrl() {
 export const isEphemeralDb = () => dbUrl() === ":memory:";
 
 export function db(): Promise<Client> {
-  if (globalThis.__fanspadDb) return globalThis.__fanspadDb;
-  globalThis.__fanspadDb = (async () => {
+  if (globalThis.__repaidDb) return globalThis.__repaidDb;
+  globalThis.__repaidDb = (async () => {
     const u = dbUrl();
     if (u.startsWith("file:")) mkdirSync(dirname(u.slice(5)), { recursive: true });
     const c = createClient({ url: u, authToken: serverConfig.tursoAuthToken || undefined });
     await c.executeMultiple(SCHEMA);
     return c;
   })();
-  return globalThis.__fanspadDb;
+  return globalThis.__repaidDb;
 }
 
 async function all<T>(sql: string, args: InArgs = []): Promise<T[]> {

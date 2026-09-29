@@ -11,7 +11,7 @@
 import { useSyncExternalStore } from "react";
 import { feeTag } from "./handle";
 import { CREATOR_SHARE_BPS, MILESTONES_CENTS, MILESTONE_STEP_CENTS, SOL_USD } from "./economics";
-const STORAGE_KEY = "fanspad-preview-v1";
+const STORAGE_KEY = "repaid-preview-v2";
 const TICK_MS = 20_000;
 
 export interface Token {
@@ -82,23 +82,23 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 // Fictional handles for the preview. Not real creators.
 const SEED_CREATORS = [
   ["lunavale", "Luna Vale"],
-  ["mia.rosee", "Mia Rose"],
+  ["miarosee", "Mia Rose"],
   ["kenzieblake", "Kenzie Blake"],
   ["sophiexo", "Sophie"],
-  ["ivy.lane", "Ivy Lane"],
+  ["ivylane", "Ivy Lane"],
   ["noahwilde", "Noah Wilde"],
   ["aria_moon", "Aria Moon"],
-  ["jade.vip", "Jade"],
+  ["jadevip", "Jade"],
 ] as const;
 const SEED_TOKENS = [
   ["Luna Coin", "LUNA", "lunavale"],
-  ["Rose", "ROSE", "mia.rosee"],
+  ["Rose", "ROSE", "miarosee"],
   ["Kenzie", "KENZ", "kenzieblake"],
   ["Sophie XO", "XO", "sophiexo"],
-  ["Ivy", "IVY", "ivy.lane"],
+  ["Ivy", "IVY", "ivylane"],
   ["Wilde", "WILDE", "noahwilde"],
   ["Moonlight", "MOON", "aria_moon"],
-  ["Jade VIP", "JADE", "jade.vip"],
+  ["Jade VIP", "JADE", "jadevip"],
 ] as const;
 
 function seed(now: number): State {

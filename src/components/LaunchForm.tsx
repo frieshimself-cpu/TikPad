@@ -8,6 +8,7 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { PublicKey, SystemProgram, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { fmtSol, short } from "@/lib/format";
 import { TREASURY_ADDRESS } from "@/lib/economics";
+import { normalizeHandle } from "@/lib/handle";
 
 const MEMO_PROGRAM_ID = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
 
@@ -44,6 +45,7 @@ export function LaunchForm() {
   const [name, setName] = useState("");
   const [symbol, setSymbol] = useState("");
   const [description, setDescription] = useState("");
+  const [handle, setHandle] = useState("");
   const [devBuy, setDevBuy] = useState("0.1");
   const [image, setImage] = useState<File | null>(null);
   const [twitter, setTwitter] = useState("");
@@ -65,13 +67,14 @@ export function LaunchForm() {
   }, []);
 
   const preview = useMemo(() => (image ? URL.createObjectURL(image) : null), [image]);
+  const cleanHandle = useMemo(() => normalizeHandle(handle), [handle]);
   const devBuyNum = Number(devBuy) || 0;
   const networkLamports = status?.networkLamports ?? 0.03e9;
   const feeLamports = status?.feeLamports ?? 0;
   const total = devBuyNum * 1e9 + networkLamports + feeLamports;
   const enabled = status?.launchEnabled ?? false;
   const busy = step !== "form";
-  const canSubmit = enabled && !busy && name.trim().length > 0 && /^[A-Za-z0-9]{1,10}$/.test(symbol.trim()) && !!image && devBuyNum <= (status?.maxDevBuySol ?? 10);
+  const canSubmit = enabled && !busy && (!handle.trim() || !!cleanHandle) && name.trim().length > 0 && /^[A-Za-z0-9]{1,10}$/.test(symbol.trim()) && !!image && devBuyNum <= (status?.maxDevBuySol ?? 10);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -111,6 +114,7 @@ export function LaunchForm() {
       fd.set("name", name.trim());
       fd.set("symbol", symbol.trim().toUpperCase());
       fd.set("description", description.trim());
+      if (cleanHandle) fd.set("handle", cleanHandle);
       fd.set("wallet", publicKey.toBase58());
       if (twitter.trim()) fd.set("twitter", twitter.trim());
       if (telegram.trim()) fd.set("telegram", telegram.trim());
@@ -132,7 +136,7 @@ export function LaunchForm() {
       <div className="card p-8 text-center">
         <span className="pill pill-green">Live on pump.fun</span>
         <h2 className="mt-4 text-2xl font-bold">${symbol.toUpperCase()} is live</h2>
-        <p className="mt-2 text-muted">100% of its creator rewards go to the FansPad treasury.</p>
+        <p className="mt-2 text-muted">100% of its creator rewards route through the RePaid treasury{cleanHandle ? <> for <span className="font-semibold text-fg">@{cleanHandle}</span></> : null}.</p>
         <div className="mono mt-6 break-all rounded-xl bg-elev p-3 text-xs text-muted">{result.mint}</div>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <a href={`https://pump.fun/coin/${result.mint}`} target="_blank" rel="noreferrer" className="btn btn-primary">Open on pump.fun</a>
@@ -170,6 +174,17 @@ export function LaunchForm() {
         </div>
 
         <div className="mt-5">
+          <label className="label" htmlFor="handle">X handle this coin is for (optional)</label>
+          <div className="relative">
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted">@</span>
+            <input id="handle" className="input pl-9" value={handle} onChange={(e) => setHandle(e.target.value)} placeholder="handle or x.com/handle" />
+          </div>
+          <p className="mt-1.5 text-xs text-muted">
+            {handle && !cleanHandle ? <span className="text-rose">X handles are 1–15 letters, numbers or underscores.</span> : <>Added to the description as <span className="mono">Fees to @{cleanHandle || "handle"} via RePaid</span> so the routing is visible on pump.fun.</>}
+          </p>
+        </div>
+
+        <div className="mt-5">
           <label className="label" htmlFor="description">Description</label>
           <textarea id="description" className="input" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} placeholder="What is this coin about?" />
         </div>
@@ -203,11 +218,12 @@ export function LaunchForm() {
           </div>
         </div>
 
-        <div className="mt-6 rounded-2xl bg-[#e6f6fd] p-4 text-sm text-[#0a5f8a]">
-          <div className="font-semibold">Creator rewards</div>
+        <div className="mt-6 rounded-2xl bg-elev p-4 text-sm text-muted">
+          <div className="font-semibold text-fg">Creator rewards</div>
           <p className="mt-1">
-            This coin is created on pump.fun by the FansPad treasury, so <strong>100% of its creator rewards</strong> go to{" "}
-            <span className="mono">{short(TREASURY_ADDRESS, 6)}</span>. The launcher receives none. Rewards are claimed by the treasury every 2 minutes.
+            This coin is created on pump.fun by the RePaid treasury, so <strong className="text-fg">100% of its creator rewards</strong> go to{" "}
+            <span className="mono">{short(TREASURY_ADDRESS, 6)}</span> for distribution to the named X creator. The launcher receives none. Rewards are
+            claimed every 2 minutes.
           </p>
         </div>
       </div>

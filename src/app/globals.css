@@ -10,9 +10,9 @@
   --fg: #0f1419;
   --fg-muted: #6b7a88;
   --fg-dim: #9aa8b4;
-  --cyan: #00aff0;
-  --cyan-deep: #0096d6;
-  --cyan-soft: #e6f6fd;
+  --cyan: #1d9bf0;
+  --cyan-deep: #1a8cd8;
+  --cyan-soft: #e8f5fd;
   --rose: #e0245e;
   --green: #17bf63;
   --amber: #b45309;
@@ -94,26 +94,26 @@ h1, h2, h3 {
     transform: none;
   }
   .btn-primary {
-    background: var(--cyan);
-    color: #fff;
-  }
-  .btn-primary:hover:not(:disabled) {
-    background: var(--cyan-deep);
-  }
-  .btn-accent {
     background: var(--fg);
     color: #fff;
   }
+  .btn-primary:hover:not(:disabled) {
+    background: #272c30;
+  }
+  .btn-accent {
+    background: var(--cyan);
+    color: #fff;
+  }
   .btn-accent:hover:not(:disabled) {
-    background: #000;
+    background: var(--cyan-deep);
   }
   .btn-ghost {
     background: var(--bg-card);
-    color: var(--cyan);
-    border: 1px solid var(--cyan);
+    color: var(--fg);
+    border: 1px solid var(--line-strong);
   }
   .btn-ghost:hover:not(:disabled) {
-    background: var(--cyan-soft);
+    background: var(--bg-elev);
   }
 
   .input {
@@ -130,7 +130,7 @@ h1, h2, h3 {
   }
   .input:focus {
     border-color: var(--cyan);
-    box-shadow: 0 0 0 3px rgb(0 175 240 / 0.15);
+    box-shadow: 0 0 0 3px rgb(29 155 240 / 0.18);
   }
   .input::placeholder {
     color: var(--fg-dim);
@@ -202,7 +202,7 @@ h1, h2, h3 {
 
   .glow {
     background:
-      radial-gradient(800px 380px at 80% -10%, rgb(0 175 240 / 0.12), transparent 60%),
+      radial-gradient(800px 380px at 80% -10%, rgb(29 155 240 / 0.10), transparent 60%),
       var(--bg);
   }
 
