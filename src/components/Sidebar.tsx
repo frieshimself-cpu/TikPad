@@ -30,7 +30,7 @@ export function Sidebar() {
                 key={href}
                 href={href}
                 className={`flex items-center gap-3 rounded-full px-4 py-2.5 text-[15px] font-medium transition ${
-                  active ? "bg-elev font-semibold text-fg" : "text-fg hover:bg-elev"
+                  active ? "bg-elev font-semibold text-cyan" : "text-fg hover:bg-elev"
                 }`}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

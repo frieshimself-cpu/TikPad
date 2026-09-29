@@ -26,9 +26,9 @@ export function HomeView() {
       <section className="glow px-6 pb-16 pt-14 sm:px-12 lg:pt-20">
         <div className="mx-auto grid max-w-6xl items-center gap-14 xl:grid-cols-[1.1fr_0.9fr]">
           <div>
-            <span className="pill pill-cyan">pump.fun · Solana · X</span>
-            <h1 className="mt-6 max-w-2xl text-5xl font-extrabold leading-[1.02] sm:text-6xl">
-              Token fees, paid to creators on <span className="text-cyan">X</span>.
+            <span className="pill pill-cyan">Quietly, on Solana</span>
+            <h1 className="mt-6 max-w-2xl text-5xl leading-[1.02] sm:text-7xl">
+              Token fees, paid to creators on X. <span className="italic text-cyan">Hush.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
               Launch a token, point its creator fees at any X handle, and HushPay pays them automatically. They don&apos;t need to do
@@ -69,16 +69,16 @@ export function HomeView() {
         <div className="mx-auto grid max-w-6xl gap-12 2xl:grid-cols-[1fr_400px]">
           <div>
             <div className="eyebrow">Activity</div>
-            <h2 className="mt-2 text-3xl font-bold">Every launch, credit and payout</h2>
+            <h2 className="mt-2 text-3xl">Every launch, credit and payout</h2>
             <div className="mt-6">{state ? <LiveFeed state={state} /> : <Skeleton className="h-96" />}</div>
           </div>
           <div>
             <div className="eyebrow">How it works</div>
-            <h2 className="mt-2 text-3xl font-bold">Three steps</h2>
+            <h2 className="mt-2 text-3xl">Three steps</h2>
             <ol className="mt-6 space-y-3">
               {STEPS.map(([t, d], i) => (
                 <li key={t} className="flex gap-4 rounded-2xl bg-elev p-5">
-                  <span className="num flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cyan text-sm font-bold text-white">{i + 1}</span>
+                  <span className="num flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line-strong bg-card text-sm font-bold text-cyan">{i + 1}</span>
                   <div>
                     <div className="font-bold">{t}</div>
                     <p className="mt-1 text-sm leading-relaxed text-muted">{d}</p>
@@ -96,7 +96,7 @@ export function HomeView() {
             <div className="mb-6 flex items-end justify-between px-6 sm:px-12">
               <div>
                 <div className="eyebrow">Leaderboard</div>
-                <h2 className="mt-2 text-3xl font-bold">Top creators</h2>
+                <h2 className="mt-2 text-3xl">Top creators</h2>
               </div>
               <Link href="/claim" className="text-sm font-semibold text-cyan hover:underline">Claim yours →</Link>
             </div>
@@ -123,13 +123,13 @@ export function HomeView() {
       )}
 
       <section className="px-6 py-16 sm:px-12">
-        <div className="mx-auto max-w-6xl rounded-3xl bg-fg px-8 py-12 text-white sm:px-12">
+        <div className="mx-auto max-w-6xl rounded-3xl border border-line bg-[radial-gradient(600px_300px_at_20%_0%,rgb(120_90_255_/_0.3),transparent),#12121a] px-8 py-12 text-fg sm:px-12">
           <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
             <div>
-              <h3 className="text-3xl font-bold">Is a token paying you?</h3>
-              <p className="mt-2 max-w-lg text-white/85">Sign in with X, link a Solana wallet, and everything credited to your handle is sent to you.</p>
+              <h3 className="text-3xl">Is a token paying you?</h3>
+              <p className="mt-2 max-w-lg text-muted">Sign in with X, link a Solana wallet, and everything credited to your handle is sent to you.</p>
             </div>
-            <Link href="/claim" className="btn h-12 bg-white px-7 text-base text-fg hover:bg-[#f0f3f5]">Claim your earnings</Link>
+            <Link href="/claim" className="btn btn-primary h-12 px-7 text-base">Claim your earnings</Link>
           </div>
         </div>
       </section>

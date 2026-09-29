@@ -22,7 +22,7 @@ export function TokenView({ mint }: { mint: string }) {
           <TokenImage src={t.image_url} symbol={t.symbol} size={64} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-semibold">{t.name}</h1>
+              <h1 className="text-3xl">{t.name}</h1>
               <span className="num text-muted">${t.symbol}</span>
               <span className="pill pill-cyan">preview</span>
             </div>

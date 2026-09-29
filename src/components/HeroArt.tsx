@@ -7,12 +7,12 @@ import { Verified } from "./Verified";
 export function HeroArt() {
   return (
     <div className="relative mx-auto w-full max-w-[400px]" aria-hidden>
-      <div className="float-c overflow-hidden rounded-3xl border border-line bg-card shadow-[0_30px_80px_-40px_rgba(15,20,25,0.35)]">
-        <div className="h-28 bg-[linear-gradient(135deg,#0f1419,#3a4a5a)]" />
+      <div className="float-c overflow-hidden rounded-3xl border border-line bg-card shadow-[0_40px_100px_-40px_rgba(120,90,255,0.45)]">
+        <div className="h-28 bg-[radial-gradient(400px_160px_at_30%_120%,rgb(184_166_255_/_0.5),transparent),linear-gradient(135deg,#1c1930,#2b2450)]" />
         <div className="px-6 pb-6">
           <div className="-mt-10 flex items-end justify-between">
             <span className="rounded-full border-4 border-card"><Avatar handle="lunavale" size={80} /></span>
-            <span className="btn btn-primary h-9 px-4 text-sm">Fees routed</span>
+            <span className="btn btn-accent h-9 px-4 text-sm">Fees routed</span>
           </div>
           <div className="mt-3 flex items-center gap-1.5 text-lg font-bold">
             Luna Vale <Verified size={18} />

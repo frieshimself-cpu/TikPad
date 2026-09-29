@@ -8,7 +8,7 @@ export const metadata = { title: "Docs — HushPay" };
 export default function DocsPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-12 sm:px-12">
-      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">How HushPay works</h1>
+      <h1 className="text-4xl sm:text-5xl">How HushPay works</h1>
       <p className="mt-3 text-muted">
         HushPay turns pump.fun creator fees into payouts for creators on X. The creator does not need an account, a wallet, or to know the
         token exists. Their share accrues under their handle until they sign in to collect it.
