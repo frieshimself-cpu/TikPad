@@ -11,7 +11,7 @@
 import { useSyncExternalStore } from "react";
 import { feeTag } from "./handle";
 import { CREATOR_SHARE_BPS, MILESTONES_CENTS, MILESTONE_STEP_CENTS, SOL_USD } from "./economics";
-const STORAGE_KEY = "repaid-preview-v2";
+const STORAGE_KEY = "hushpay-preview-v2";
 const TICK_MS = 20_000;
 
 export interface Token {

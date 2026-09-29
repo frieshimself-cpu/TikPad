@@ -11,8 +11,8 @@ import { fmtUsd } from "@/lib/format";
 import { leaderboard, stats, useStore } from "@/lib/store";
 
 const STEPS = [
-  ["Launch", "Name, ticker, image, and the X handle that should get paid. RePaid creates the token on pump.fun with its treasury as the on-chain creator."],
-  ["Fees accrue", "Every pump.fun trade pays a creator fee. The treasury is the creator, so the fees land with RePaid and are attributed to the token that produced them."],
+  ["Launch", "Name, ticker, image, and the X handle that should get paid. HushPay creates the token on pump.fun with its treasury as the on-chain creator."],
+  ["Fees accrue", "Every pump.fun trade pays a creator fee. The treasury is the creator, so the fees land with HushPay and are attributed to the token that produced them."],
   ["Creator gets paid", "80% of every claim is credited to the username. Once it crosses $5, then $10, $20, $50 and up, it's sent to the wallet the creator linked after signing in with X."],
 ];
 
@@ -26,12 +26,12 @@ export function HomeView() {
       <section className="glow px-6 pb-16 pt-14 sm:px-12 lg:pt-20">
         <div className="mx-auto grid max-w-6xl items-center gap-14 xl:grid-cols-[1.1fr_0.9fr]">
           <div>
-            <span className="pill pill-cyan">The Paid model, rebuilt for X</span>
+            <span className="pill pill-cyan">pump.fun · Solana · X</span>
             <h1 className="mt-6 max-w-2xl text-5xl font-extrabold leading-[1.02] sm:text-6xl">
               Token fees, paid to creators on <span className="text-cyan">X</span>.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
-              Launch a token, point its creator fees at any X handle, and RePaid pays them automatically. They don&apos;t need to do
+              Launch a token, point its creator fees at any X handle, and HushPay pays them automatically. They don&apos;t need to do
               anything until they want to collect.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">

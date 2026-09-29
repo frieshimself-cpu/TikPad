@@ -15,7 +15,7 @@ export const serverConfig = {
   pinataGateway: url(process.env.PINATA_GATEWAY, "https://gateway.pinata.cloud"),
   tursoUrl: process.env.TURSO_DATABASE_URL ?? "",
   tursoAuthToken: process.env.TURSO_AUTH_TOKEN ?? "",
-  dbPath: process.env.DATABASE_PATH ?? "./data/repaid.db",
+  dbPath: process.env.DATABASE_PATH ?? "./data/hushpay.db",
   cronSecret: process.env.CRON_SECRET ?? "",
   /** SOL reserved to cover pump.fun account creation + priority fees for a launch. */
   launchNetworkLamports: num(process.env.LAUNCH_NETWORK_LAMPORTS, 0.03 * LAMPORTS_PER_SOL),

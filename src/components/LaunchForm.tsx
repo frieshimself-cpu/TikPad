@@ -136,7 +136,7 @@ export function LaunchForm() {
       <div className="card p-8 text-center">
         <span className="pill pill-green">Live on pump.fun</span>
         <h2 className="mt-4 text-2xl font-bold">${symbol.toUpperCase()} is live</h2>
-        <p className="mt-2 text-muted">100% of its creator rewards route through the RePaid treasury{cleanHandle ? <> for <span className="font-semibold text-fg">@{cleanHandle}</span></> : null}.</p>
+        <p className="mt-2 text-muted">100% of its creator rewards route through the HushPay treasury{cleanHandle ? <> for <span className="font-semibold text-fg">@{cleanHandle}</span></> : null}.</p>
         <div className="mono mt-6 break-all rounded-xl bg-elev p-3 text-xs text-muted">{result.mint}</div>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <a href={`https://pump.fun/coin/${result.mint}`} target="_blank" rel="noreferrer" className="btn btn-primary">Open on pump.fun</a>
@@ -180,7 +180,7 @@ export function LaunchForm() {
             <input id="handle" className="input pl-9" value={handle} onChange={(e) => setHandle(e.target.value)} placeholder="handle or x.com/handle" />
           </div>
           <p className="mt-1.5 text-xs text-muted">
-            {handle && !cleanHandle ? <span className="text-rose">X handles are 1–15 letters, numbers or underscores.</span> : <>Added to the description as <span className="mono">Fees to @{cleanHandle || "handle"} via RePaid</span> so the routing is visible on pump.fun.</>}
+            {handle && !cleanHandle ? <span className="text-rose">X handles are 1–15 letters, numbers or underscores.</span> : <>Added to the description as <span className="mono">Fees to @{cleanHandle || "handle"} via HushPay</span> so the routing is visible on pump.fun.</>}
           </p>
         </div>
 
@@ -221,7 +221,7 @@ export function LaunchForm() {
         <div className="mt-6 rounded-2xl bg-elev p-4 text-sm text-muted">
           <div className="font-semibold text-fg">Creator rewards</div>
           <p className="mt-1">
-            This coin is created on pump.fun by the RePaid treasury, so <strong className="text-fg">100% of its creator rewards</strong> go to{" "}
+            This coin is created on pump.fun by the HushPay treasury, so <strong className="text-fg">100% of its creator rewards</strong> go to{" "}
             <span className="mono">{short(TREASURY_ADDRESS, 6)}</span> for distribution to the named X creator. The launcher receives none. Rewards are
             claimed every 2 minutes.
           </p>

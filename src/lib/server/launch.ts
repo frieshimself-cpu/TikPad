@@ -49,7 +49,7 @@ export async function quoteLaunch(wallet: string, devBuySol: number) {
 }
 
 /** Mint keypair derived from the payment signature: one payment can only ever create one coin. */
-const mintFor = (paymentSig: string) => Keypair.fromSeed(createHash("sha256").update("repaid:mint:" + paymentSig).digest());
+const mintFor = (paymentSig: string) => Keypair.fromSeed(createHash("sha256").update("hushpay:mint:" + paymentSig).digest());
 
 async function hostMetadata(input: LaunchInput, description: string) {
   const meta = {

@@ -24,7 +24,7 @@ export function ClaimPanel() {
     return (
       <div className="card mx-auto max-w-md p-8 text-center">
         <h2 className="text-xl font-semibold">Claim what tokens have earned you</h2>
-        <p className="mt-2 text-sm text-muted">Sign in with X to prove you own the handle, link a Solana wallet, and RePaid pays you at each milestone.</p>
+        <p className="mt-2 text-sm text-muted">Sign in with X to prove you own the handle, link a Solana wallet, and HushPay pays you at each milestone.</p>
         <button className="btn btn-accent mt-6 w-full" onClick={() => setError("Sign in with X is not connected in this preview. Use the box below.")}>
           <XMark /> Sign in with X
         </button>
@@ -149,7 +149,7 @@ export function ClaimPanel() {
         <div className="card p-6 text-sm text-muted">
           <h3 className="font-semibold text-fg">How payouts work</h3>
           <ul className="mt-3 list-disc space-y-1.5 pl-4 text-xs leading-relaxed">
-            <li>Every pump.fun creator-fee claim is split: 80% to you, 20% to RePaid.</li>
+            <li>Every pump.fun creator-fee claim is split: 80% to you, 20% to HushPay.</li>
             <li>Your share is paid when lifetime earnings cross $5, $10, $20, $50, $100, $250, $500, $1,000, then every $1,000.</li>
             <li>Payouts are in SOL, sent on Solana to the wallet above.</li>
           </ul>

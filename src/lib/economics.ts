@@ -10,6 +10,6 @@ export const TREASURY_ADDRESS = "aCKyUCgUMfeScz1M9AsMzGZcJxB2EikTGgaftromUz1";
 /** How often the treasury claims creator rewards. */
 export const CLAIM_INTERVAL_MS = 2 * 60 * 1000;
 
-/** The RePaid token contract address on pump.fun. */
-export const REPAID_CA = "D8T1P5QLQSVysQRUgNgpjXm2S5Di4nAwdJHJSf7Jpump";
-export const REPAID_PUMP_URL = `https://pump.fun/coin/${REPAID_CA}`;
+/** The HushPay token contract address on pump.fun. */
+export const HUSHPAY_CA = "D8T1P5QLQSVysQRUgNgpjXm2S5Di4nAwdJHJSf7Jpump";
+export const HUSHPAY_PUMP_URL = `https://pump.fun/coin/${HUSHPAY_CA}`;
