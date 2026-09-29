@@ -24,6 +24,8 @@ export const serverConfig = {
   priorityFeeSol: num(process.env.PRIORITY_FEE_SOL, 0.0005),
   maxDevBuySol: num(process.env.MAX_DEV_BUY_SOL, 10),
   slippagePct: num(process.env.SLIPPAGE_PCT, 10),
+  /** Skip claiming until at least this much is pending (lamports). Default 0.002 SOL. */
+  minClaimLamports: num(process.env.MIN_CLAIM_LAMPORTS, 0.002 * LAMPORTS_PER_SOL),
 } as const;
 
 /** Launches need the treasury key. Metadata goes to Pinata when PINATA_JWT is set, otherwise the app hosts it itself. */

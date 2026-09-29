@@ -43,3 +43,4 @@ data/
 
 # keep the example env file
 !.env.example
+.e2e-wallets.txt

@@ -4,7 +4,7 @@
  */
 import { Keypair, VersionedTransaction } from "@solana/web3.js";
 import { serverConfig } from "./config";
-import { connection, treasuryKeypair } from "./solana";
+import { connection, pendingCreatorFeeLamports, treasuryKeypair } from "./solana";
 
 const TRADE_LOCAL = "https://pumpportal.fun/api/trade-local";
 const PINATA_UPLOAD = "https://uploads.pinata.cloud/v3/files";
@@ -130,6 +130,12 @@ export async function collectCreatorFees(log: (s: string) => void = () => {}): P
   const before = await c.getBalance(treasury.publicKey, "confirmed");
   if (before < 0.001 * 1e9) {
     log(`treasury has ${before / 1e9} SOL, not enough to pay a claim fee; skipping`);
+    return null;
+  }
+  // Only claim when it is worth more than the transaction costs (~0.0006 SOL with priority fee).
+  const pending = await pendingCreatorFeeLamports();
+  if (pending < serverConfig.minClaimLamports) {
+    log(`pending creator fees ${pending / 1e9} SOL below threshold ${serverConfig.minClaimLamports / 1e9}; skipping`);
     return null;
   }
   const tx = await tradeLocal({ publicKey: treasury.publicKey.toBase58(), action: "collectCreatorFee", priorityFee: serverConfig.priorityFeeSol });
