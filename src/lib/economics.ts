@@ -11,5 +11,5 @@ export const TREASURY_ADDRESS = "aCKyUCgUMfeScz1M9AsMzGZcJxB2EikTGgaftromUz1";
 export const CLAIM_INTERVAL_MS = 2 * 60 * 1000;
 
 /** The HushPay token contract address on pump.fun. */
-export const HUSHPAY_CA = "D8T1P5QLQSVysQRUgNgpjXm2S5Di4nAwdJHJSf7Jpump";
+export const HUSHPAY_CA = "91XQzRchA84EmtDcrkLAf5ZV7VaAgxMN1VgCGXDxpump";
 export const HUSHPAY_PUMP_URL = `https://pump.fun/coin/${HUSHPAY_CA}`;
