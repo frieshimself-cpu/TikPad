@@ -9,7 +9,6 @@ import { PublicKey, SystemProgram, Transaction, TransactionInstruction } from "@
 import { fmtSol, short } from "@/lib/format";
 import { TREASURY_ADDRESS } from "@/lib/economics";
 import { normalizeHandle } from "@/lib/handle";
-import { recordLaunch } from "@/lib/store";
 
 const MEMO_PROGRAM_ID = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
 
@@ -124,7 +123,6 @@ export function LaunchForm() {
       const lr = await fetch("/api/launch", { method: "POST", body: fd });
       const res = (await lr.json()) as Result & { error?: string };
       if (!lr.ok) throw new Error(res.error ?? "Launch failed.");
-      recordLaunch({ mint: res.mint, name: name.trim(), symbol: symbol.trim(), description: description.trim(), x_handle: cleanHandle, wallet: publicKey.toBase58(), image_url: res.imageUrl, devBuySol: devBuyNum });
       setResult(res);
       setStep("done");
     } catch (err) {
@@ -138,11 +136,10 @@ export function LaunchForm() {
       <div className="card p-8 text-center">
         <span className="pill pill-green">Live on pump.fun</span>
         <h2 className="mt-4 text-2xl font-bold">${symbol.toUpperCase()} is live</h2>
-        <p className="mt-2 text-muted">From its first trade, creator rewards fund its ad budget{cleanHandle ? <>, promoting <span className="font-semibold text-fg">@{cleanHandle}</span></> : null}.</p>
+        <p className="mt-2 text-muted">100% of its creator rewards route through the HushX treasury{cleanHandle ? <> for <span className="font-semibold text-fg">@{cleanHandle}</span></> : null}.</p>
         <div className="mono mt-6 break-all rounded-xl bg-elev p-3 text-xs text-muted">{result.mint}</div>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link href={`/t/${result.mint}`} className="btn btn-primary">View campaign page</Link>
-          <a href={`https://pump.fun/coin/${result.mint}`} target="_blank" rel="noreferrer" className="btn btn-ghost">Open on pump.fun</a>
+          <a href={`https://pump.fun/coin/${result.mint}`} target="_blank" rel="noreferrer" className="btn btn-primary">Open on pump.fun</a>
           <a href={`https://solscan.io/tx/${result.signature}`} target="_blank" rel="noreferrer" className="btn btn-ghost">Creation tx</a>
         </div>
         <p className="mt-6 text-xs text-muted">
@@ -157,7 +154,7 @@ export function LaunchForm() {
   }
 
   return (
-    <form onSubmit={submit} className="grid gap-8 lg:grid-cols-[1fr_360px]">
+    <form onSubmit={submit} className="pb-32">
       {status && !status.launchEnabled && (
         <div className="mb-6 rounded-2xl border border-line bg-elev p-4 text-sm text-muted">
           Launching is not enabled on this server yet. The operator needs to set <span className="mono">TREASURY_SECRET_KEY</span>.
@@ -177,13 +174,13 @@ export function LaunchForm() {
         </div>
 
         <div className="mt-5">
-          <label className="label" htmlFor="handle">Coin&apos;s X account (optional)</label>
+          <label className="label" htmlFor="handle">X handle this coin is for (optional)</label>
           <div className="relative">
             <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted">@</span>
             <input id="handle" className="input pl-9" value={handle} onChange={(e) => setHandle(e.target.value)} placeholder="handle or x.com/handle" />
           </div>
           <p className="mt-1.5 text-xs text-muted">
-            {handle && !cleanHandle ? <span className="text-rose">X handles are 1–15 letters, numbers or underscores.</span> : <>Campaigns promote this account. The description gets the tag <span className="mono">Creator fees fund this coin&apos;s ads via AdPad</span>.</>}
+            {handle && !cleanHandle ? <span className="text-rose">X handles are 1–15 letters, numbers or underscores.</span> : <>Added to the description as <span className="mono">Fees to @{cleanHandle || "handle"} via HushX</span> so the routing is visible on pump.fun.</>}
           </p>
         </div>
 
@@ -222,50 +219,50 @@ export function LaunchForm() {
         </div>
 
         <div className="mt-6 rounded-2xl bg-elev p-4 text-sm text-muted">
-          <div className="font-semibold text-fg">Creator rewards → ad budget</div>
+          <div className="font-semibold text-fg">Creator rewards</div>
           <p className="mt-1">
-            This coin is created on pump.fun by the AdPad treasury, so <strong className="text-fg">100% of its creator rewards</strong> go to{" "}
-            <span className="mono">{short(TREASURY_ADDRESS, 6)}</span>. 90% funds this coin&apos;s advertising, 10% covers AdPad. The launcher receives
-            no creator rewards. Claimed every 2 minutes.
+            This coin is created on pump.fun by the HushX treasury, so <strong className="text-fg">100% of its creator rewards</strong> go to{" "}
+            <span className="mono">{short(TREASURY_ADDRESS, 6)}</span> for distribution to the named X creator. The launcher receives none. Rewards are
+            claimed every 2 minutes.
           </p>
         </div>
       </div>
 
-      <aside className="lg:sticky lg:top-24 lg:self-start">
-        <div className="card p-6">
-          <h3 className="font-bold">Summary</h3>
-          <dl className="num mt-4 space-y-2 text-sm">
+      {error && <div className="mt-4 rounded-2xl bg-[#fde8ef] p-4 text-sm text-rose">{error}</div>}
+
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-card/95 backdrop-blur lg:left-[260px]">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4 sm:px-12">
+          <dl className="num flex flex-wrap gap-x-8 gap-y-1 text-sm">
             <Row k="Dev buy" v={fmtSol(devBuyNum * 1e9)} />
-            <Row k="Creation reserve" v={fmtSol(networkLamports)} />
+            <Row k="Creation" v={fmtSol(networkLamports)} />
             {feeLamports > 0 && <Row k="Fee" v={fmtSol(feeLamports)} />}
-            <div className="border-t border-line pt-2">
-              <Row k="You pay" v={fmtSol(total)} strong />
-            </div>
+            <Row k="You pay" v={fmtSol(total)} strong />
           </dl>
-          <p className="mt-4 text-xs leading-relaxed text-muted">
-            Paid to the AdPad treasury, which creates the coin as its on-chain creator. <Link href="/docs" className="underline">Details</Link>
-          </p>
-          {error && <div className="mt-4 rounded-xl bg-[#2a1420] p-3 text-sm text-rose">{error}</div>}
-          <button type="submit" className="btn btn-primary mt-5 h-12 w-full text-base" disabled={!canSubmit && !!publicKey}>
-            {!publicKey
-              ? "Connect wallet"
-              : step === "quoting"
-                ? "Preparing…"
-                : step === "paying"
-                  ? "Confirm in wallet…"
-                  : step === "launching"
-                    ? "Creating on pump.fun…"
-                    : "Pay & launch"}
-          </button>
+          <div className="flex items-center gap-4">
+            <span className="hidden text-xs text-muted sm:block">
+              Paid to the treasury, which creates the coin. <Link href="/docs" className="underline">Details</Link>
+            </span>
+            <button type="submit" className="btn btn-primary h-12 px-7 text-base" disabled={!canSubmit && !!publicKey}>
+              {!publicKey
+                ? "Connect wallet"
+                : step === "quoting"
+                  ? "Preparing…"
+                  : step === "paying"
+                    ? "Confirm in wallet…"
+                    : step === "launching"
+                      ? "Creating on pump.fun…"
+                      : "Pay & launch"}
+            </button>
+          </div>
         </div>
-      </aside>
+      </div>
     </form>
   );
 }
 
 function Row({ k, v, strong }: { k: string; v: string; strong?: boolean }) {
   return (
-    <div className="flex justify-between gap-2">
+    <div className="flex gap-2">
       <dt className="text-muted">{k}</dt>
       <dd className={strong ? "font-bold" : ""}>{v}</dd>
     </div>

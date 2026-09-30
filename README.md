@@ -1,25 +1,25 @@
-# AdPad
+# HushX
 
 A pump.fun launchpad where every coin's creator rewards fund its own advertising: X promoted posts, KOL promos, trend pushes and placements, paid for by volume.
 
-Launch a token, point its creator fees at any X `@handle`, and AdPad pays the creator out automatically. The creator does not need an account, a wallet, or to know the token exists until they want to collect. It is the X counterpart of [UsePaid](https://usepaid.app), which does this for X handles. Formerly TikPad.
+Launch a token, point its creator fees at any X `@handle`, and HushX pays the creator out automatically. The creator does not need an account, a wallet, or to know the token exists until they want to collect. It is the X counterpart of [UsePaid](https://usepaid.app), which does this for X handles. Formerly TikPad.
 
 ## How it works
 
-1. **Launch.** A launcher fills in name, ticker, image and the X handle, then pays the dev buy plus a small network reserve to the AdPad treasury in one wallet transaction. The treasury creates the token on pump.fun (via PumpPortal) as the on-chain *creator*, buys the dev allocation, and transfers those tokens to the launcher. The description carries `Fees to @handle via AdPad` so the routing is visible.
-2. **Fees accrue.** Every pump.fun trade pays a creator fee. Because the treasury is the creator, every fee lands with AdPad.
-3. **Attribution.** The fee router streams trades for all registered tokens, periodically claims creator fees, and splits each claim across tokens pro-rata by traded volume since the last claim. 80% of a token's share is credited to its X handle, 20% stays with AdPad.
+1. **Launch.** A launcher fills in name, ticker, image and the X handle, then pays the dev buy plus a small network reserve to the HushX treasury in one wallet transaction. The treasury creates the token on pump.fun (via PumpPortal) as the on-chain *creator*, buys the dev allocation, and transfers those tokens to the launcher. The description carries `Fees to @handle via HushX` so the routing is visible.
+2. **Fees accrue.** Every pump.fun trade pays a creator fee. Because the treasury is the creator, every fee lands with HushX.
+3. **Attribution.** The fee router streams trades for all registered tokens, periodically claims creator fees, and splits each claim across tokens pro-rata by traded volume since the last claim. 80% of a token's share is credited to its X handle, 20% stays with HushX.
 4. **Payout.** The creator signs in with X (Login Kit), which returns the verified username, then links any Solana address. Their unpaid balance is sent in SOL when lifetime earnings cross $5, $10, $20, $50, $100, $250, $500, $1,000 and every $1,000 after.
 
 ## Current status
 
-**Launching is real.** The launch page creates coins on pump.fun through PumpPortal. The AdPad treasury (`aCKyUCgUMfeScz1M9AsMzGZcJxB2EikTGgaftromUz1`) signs as the on-chain creator, so 100% of every coin's creator rewards accrue to it with no way for a launcher to redirect them. Launchers choose name, ticker, description, image, links, an optional X account and a dev-buy amount; they pay dev buy + a 0.03 SOL creation reserve to the treasury in one transaction, the server creates the coin, and the dev-buy tokens are swept to the launcher's wallet.
+**Launching is real.** The launch page creates coins on pump.fun through PumpPortal. The HushX treasury (`aCKyUCgUMfeScz1M9AsMzGZcJxB2EikTGgaftromUz1`) signs as the on-chain creator, so 100% of every coin's creator rewards accrue to it with no way for a launcher to redirect them. Launchers choose name, ticker, description, image, links, an optional X handle and a dev-buy amount; they pay dev buy + a 0.03 SOL creation reserve to the treasury in one transaction, the server creates the coin, and the dev-buy tokens are swept to the launcher's wallet.
 
 **Claiming is automatic.** Three mechanisms, any of which is enough: every server-rendered page view triggers a claim if the last one was over 2 minutes ago (runs after the response); `/api/cron/claim` can be hit by Vercel Cron (daily by default, `*/2 * * * *` on Pro) or any external pinger; and `npm run claimer` loops every 2 minutes from any always-on host. One PumpPortal `collectCreatorFee` transaction claims across every coin the treasury created, and a simulation runs first so empty claims cost nothing.
 
 **The only required secret is `TREASURY_SECRET_KEY`.**
 
-**The campaign pages** (feed, budgets, campaigns) are still the browser-side preview from `src/lib/store.ts`, to be replaced by the ad backend that books and reports campaigns.
+**Everything else on the site** (feed, leaderboard, creator dashboard) is still the browser-side preview from `src/lib/store.ts`, to be replaced by the payout backend.
 
 ## Configuration
 

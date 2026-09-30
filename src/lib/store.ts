@@ -1,15 +1,17 @@
 "use client";
 
 /**
- * Browser-side preview state for the campaign pages. Stands in for the ad
- * backend until it is connected: launched coins, fee credits into each
- * coin's ad budget, and campaigns run from that budget.
+ * Browser-side state for the front-end preview. Stands in for the database
+ * and fee router until the backend (see /backend) is wired up.
+ *
+ * Everything lives in localStorage: the seeded history, tokens you launch,
+ * the creator you sign in as, the wallet you link, and simulated fee claims
+ * and payouts that keep the feed moving.
  */
 import { useSyncExternalStore } from "react";
 import { feeTag } from "./handle";
-import { AD_BUDGET_BPS, CAMPAIGN_TYPES, SOL_USD, type CampaignType } from "./economics";
-
-const STORAGE_KEY = "adpad-preview-v1";
+import { CREATOR_SHARE_BPS, MILESTONES_CENTS, MILESTONE_STEP_CENTS, SOL_USD } from "./economics";
+const STORAGE_KEY = "hushx-preview-v2";
 const TICK_MS = 20_000;
 
 export interface Token {
@@ -18,39 +20,48 @@ export interface Token {
   symbol: string;
   description: string;
   image_url: string | null;
-  x_handle: string | null;
+  recipient_handle: string;
   launcher_wallet: string;
   dev_buy_lamports: number;
   created_at: number;
 }
+export interface Creator {
+  handle: string;
+  display_name: string;
+  avatar_url: string | null;
+  payout_wallet: string | null;
+}
 export interface Credit {
   id: string;
+  handle: string;
   mint: string;
   lamports: number;
   usd_cents: number;
   ts: number;
 }
-export interface Campaign {
+export interface Payout {
   id: string;
-  mint: string;
-  type: CampaignType;
+  handle: string;
+  wallet: string;
+  lamports: number;
   usd_cents: number;
-  impressions: number;
-  status: "live" | "done";
+  milestone_cents: number;
   ts: number;
 }
 export interface State {
   tokens: Token[];
+  creators: Creator[];
   credits: Credit[];
-  campaigns: Campaign[];
+  payouts: Payout[];
+  session: string | null;
   lastTick: number;
 }
 export interface FeedItem {
-  kind: "campaign" | "credit" | "launch";
+  kind: "payout" | "credit" | "launch";
   id: string;
-  mint: string;
-  symbol: string;
-  label: string;
+  handle: string;
+  mint: string | null;
+  symbol: string | null;
   lamports: number;
   usd_cents: number;
   ts: number;
@@ -67,54 +78,57 @@ export const randomAddress = () => b58(rng(Math.floor(Math.random() * 2 ** 31)),
 const cents = (lamports: number) => Math.round((lamports / 1e9) * SOL_USD * 100);
 const uid = () => Math.random().toString(36).slice(2, 10);
 
-/* ---------------- seed (fictional coins) ---------------- */
+/* ---------------- seed ---------------- */
+// Fictional handles for the preview. Not real creators.
+const SEED_CREATORS = [
+  ["lunavale", "Luna Vale"],
+  ["miarosee", "Mia Rose"],
+  ["kenzieblake", "Kenzie Blake"],
+  ["sophiexo", "Sophie"],
+  ["ivylane", "Ivy Lane"],
+  ["noahwilde", "Noah Wilde"],
+  ["aria_moon", "Aria Moon"],
+  ["jadevip", "Jade"],
+] as const;
 const SEED_TOKENS = [
-  ["Moon Cat", "MCAT", "mooncatsol"],
-  ["Pixel Pepe", "PPEPE", "pixelpepe"],
-  ["Solana Toast", "TOAST", "solanatoast"],
-  ["Night Owl", "OWL", "nightowlcoin"],
-  ["Rocket Rat", "RRAT", "rocketrat"],
-  ["Glass Frog", "FROG", "glassfrogsol"],
-  ["Orbit", "ORBIT", "orbitonsol"],
-  ["Jelly", "JELLY", "jellycoin"],
+  ["Luna Coin", "LUNA", "lunavale"],
+  ["Rose", "ROSE", "miarosee"],
+  ["Kenzie", "KENZ", "kenzieblake"],
+  ["Sophie XO", "XO", "sophiexo"],
+  ["Ivy", "IVY", "ivylane"],
+  ["Wilde", "WILDE", "noahwilde"],
+  ["Moonlight", "MOON", "aria_moon"],
+  ["Jade VIP", "JADE", "jadevip"],
 ] as const;
 
 function seed(now: number): State {
-  const rand = rng(7);
-  const s: State = { tokens: [], credits: [], campaigns: [], lastTick: now };
-  SEED_TOKENS.forEach(([name, symbol, x], i) => {
+  const rand = rng(42);
+  const s: State = { tokens: [], creators: [], credits: [], payouts: [], session: null, lastTick: now };
+  for (const [handle, name] of SEED_CREATORS) s.creators.push({ handle, display_name: name, avatar_url: null, payout_wallet: null });
+  SEED_TOKENS.forEach(([name, symbol, handle], i) => {
     const mint = b58(rand);
     const created = now - (SEED_TOKENS.length - i) * 6 * 3600_000 - rand() * 3600_000;
     s.tokens.push({
       mint,
       name,
       symbol,
-      description: `${name} — community coin.\n\n${feeTag()}`,
+      description: `${name} — community token.\n\n${feeTag(handle)}`,
       image_url: null,
-      x_handle: x,
+      recipient_handle: handle,
       launcher_wallet: b58(rand),
       dev_buy_lamports: Math.round((0.2 + rand() * 1.5) * 1e9),
       created_at: created,
     });
     const n = 3 + Math.floor(rand() * 6);
-    let budget = 0;
+    let cum = 0;
     for (let k = 0; k < n; k++) {
       const lamports = Math.round((0.02 + rand() * 0.6) * 1e9);
-      budget += cents(lamports);
-      s.credits.push({ id: `s${i}-${k}`, mint, lamports, usd_cents: cents(lamports), ts: created + ((k + 1) * (now - created)) / (n + 1) });
+      cum += lamports;
+      s.credits.push({ id: `s${i}-${k}`, handle, mint, lamports, usd_cents: cents(lamports), ts: created + ((k + 1) * (now - created)) / (n + 1) });
     }
-    const runs = Math.floor(rand() * 3);
-    for (let k = 0; k < runs; k++) {
-      const spend = Math.round(budget * (0.15 + rand() * 0.25));
-      s.campaigns.push({
-        id: `c${i}-${k}`,
-        mint,
-        type: CAMPAIGN_TYPES[Math.floor(rand() * CAMPAIGN_TYPES.length)],
-        usd_cents: spend,
-        impressions: Math.round(spend * (40 + rand() * 80)),
-        status: k === runs - 1 && rand() > 0.5 ? "live" : "done",
-        ts: now - rand() * 8 * 3600_000,
-      });
+    if (rand() > 0.35) {
+      const lamports = Math.round(cum * (0.5 + rand() * 0.4));
+      s.payouts.push({ id: `p${i}`, handle, wallet: b58(rand), lamports, usd_cents: cents(lamports), milestone_cents: 500, ts: now - rand() * 5 * 3600_000 });
     }
   });
   return s;
@@ -140,7 +154,7 @@ function commit(next: State) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   } catch {
-    /* quota or private mode */
+    /* quota or private mode: keep in memory */
   }
   listeners.forEach((l) => l());
 }
@@ -155,23 +169,46 @@ export function useStore(): State | null {
   return useSyncExternalStore(subscribe, load, getServerSnapshot);
 }
 
-/* ---------------- derived ---------------- */
-export const getToken = (s: State, mint: string) => s.tokens.find((t) => t.mint === mint);
-export const creditsFor = (s: State, mint: string) => s.credits.filter((c) => c.mint === mint).sort((a, b) => b.ts - a.ts);
-export const campaignsFor = (s: State, mint: string) => s.campaigns.filter((c) => c.mint === mint).sort((a, b) => b.ts - a.ts);
-
-export function budgetFor(s: State, mint: string) {
-  const earned = s.credits.filter((c) => c.mint === mint).reduce((a, c) => ({ l: a.l + c.lamports, c: a.c + c.usd_cents }), { l: 0, c: 0 });
-  const spent = s.campaigns.filter((c) => c.mint === mint).reduce((a, c) => a + c.usd_cents, 0);
-  return { earned_lamports: earned.l, earned_cents: earned.c, spent_cents: spent, available_cents: earned.c - spent };
+export function resetPreview() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+  state = null;
+  commit(load());
 }
 
+/* ---------------- derived ---------------- */
+export function nextMilestoneCents(paidCents: number) {
+  for (const m of MILESTONES_CENTS) if (m > paidCents) return m;
+  const last = MILESTONES_CENTS[MILESTONES_CENTS.length - 1];
+  return last + (Math.floor((paidCents - last) / MILESTONE_STEP_CENTS) + 1) * MILESTONE_STEP_CENTS;
+}
+
+export function balanceFor(s: State, handle: string) {
+  const sum = (xs: { lamports: number; usd_cents: number }[]) => xs.reduce((a, x) => ({ l: a.l + x.lamports, c: a.c + x.usd_cents }), { l: 0, c: 0 });
+  const e = sum(s.credits.filter((c) => c.handle === handle));
+  const p = sum(s.payouts.filter((c) => c.handle === handle));
+  return { earned_lamports: e.l, earned_cents: e.c, paid_lamports: p.l, paid_cents: p.c, unpaid_lamports: e.l - p.l, unpaid_cents: e.c - p.c };
+}
+export const balanceForMint = (s: State, mint: string) =>
+  s.credits.filter((c) => c.mint === mint).reduce((a, c) => ({ l: a.l + c.lamports, c: a.c + c.usd_cents }), { l: 0, c: 0 });
+
+export const tokensFor = (s: State, handle: string) => s.tokens.filter((t) => t.recipient_handle === handle).sort((a, b) => b.created_at - a.created_at);
+export const creditsFor = (s: State, handle: string) => s.credits.filter((c) => c.handle === handle).sort((a, b) => b.ts - a.ts);
+export const creditsForMint = (s: State, mint: string) => s.credits.filter((c) => c.mint === mint).sort((a, b) => b.ts - a.ts);
+export const payoutsFor = (s: State, handle: string) => s.payouts.filter((p) => p.handle === handle).sort((a, b) => b.ts - a.ts);
+export const getToken = (s: State, mint: string) => s.tokens.find((t) => t.mint === mint);
+export const getCreator = (s: State, handle: string) => s.creators.find((c) => c.handle === handle);
+export const me = (s: State) => (s.session ? getCreator(s, s.session) ?? null : null);
+
 export function feed(s: State, limit = 40): FeedItem[] {
-  const sym = (mint: string) => getToken(s, mint)?.symbol ?? "?";
+  const sym = (mint: string) => getToken(s, mint)?.symbol ?? null;
   const items: FeedItem[] = [
-    ...s.campaigns.map((c) => ({ kind: "campaign" as const, id: `c-${c.id}`, mint: c.mint, symbol: sym(c.mint), label: c.type, lamports: 0, usd_cents: c.usd_cents, ts: c.ts })),
-    ...s.credits.map((c) => ({ kind: "credit" as const, id: `f-${c.id}`, mint: c.mint, symbol: sym(c.mint), label: "fees → ad budget", lamports: c.lamports, usd_cents: c.usd_cents, ts: c.ts })),
-    ...s.tokens.map((t) => ({ kind: "launch" as const, id: `l-${t.mint}`, mint: t.mint, symbol: t.symbol, label: "launched", lamports: t.dev_buy_lamports, usd_cents: 0, ts: t.created_at })),
+    ...s.payouts.map((p) => ({ kind: "payout" as const, id: `p-${p.id}`, handle: p.handle, mint: null, symbol: null, lamports: p.lamports, usd_cents: p.usd_cents, ts: p.ts })),
+    ...s.credits.map((c) => ({ kind: "credit" as const, id: `c-${c.id}`, handle: c.handle, mint: c.mint, symbol: sym(c.mint), lamports: c.lamports, usd_cents: c.usd_cents, ts: c.ts })),
+    ...s.tokens.map((t) => ({ kind: "launch" as const, id: `l-${t.mint}`, handle: t.recipient_handle, mint: t.mint, symbol: t.symbol, lamports: t.dev_buy_lamports, usd_cents: 0, ts: t.created_at })),
   ];
   return items.sort((a, b) => b.ts - a.ts).slice(0, limit);
 }
@@ -179,56 +216,89 @@ export function feed(s: State, limit = 40): FeedItem[] {
 export function stats(s: State) {
   return {
     tokens: s.tokens.length,
-    budget_cents: s.credits.reduce((a, c) => a + c.usd_cents, 0),
-    spent_cents: s.campaigns.reduce((a, c) => a + c.usd_cents, 0),
-    campaigns: s.campaigns.length,
-    impressions: s.campaigns.reduce((a, c) => a + c.impressions, 0),
+    creators: new Set(s.credits.map((c) => c.handle)).size,
+    paid_cents: s.payouts.reduce((a, p) => a + p.usd_cents, 0),
+    payouts: s.payouts.length,
+    earned_cents: s.credits.reduce((a, c) => a + c.usd_cents, 0),
   };
 }
 
-export function leaderboard(s: State, limit = 8) {
-  return s.tokens
-    .map((t) => ({ ...t, ...budgetFor(s, t.mint), campaigns: campaignsFor(s, t.mint).length }))
-    .sort((a, b) => b.earned_cents - a.earned_cents)
-    .slice(0, limit);
+export function leaderboard(s: State, limit = 6) {
+  const by = new Map<string, number>();
+  for (const c of s.credits) by.set(c.handle, (by.get(c.handle) ?? 0) + c.usd_cents);
+  return [...by.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([handle, earned_cents]) => ({
+      handle,
+      earned_cents,
+      token_count: tokensFor(s, handle).length,
+      avatar_url: getCreator(s, handle)?.avatar_url ?? null,
+      linked: !!getCreator(s, handle)?.payout_wallet,
+    }));
 }
 
 /* ---------------- actions ---------------- */
-export function recordLaunch(input: { mint: string; name: string; symbol: string; description: string; x_handle: string | null; wallet: string; image_url: string | null; devBuySol: number }) {
+export function launchToken(input: { name: string; symbol: string; description: string; handle: string; devBuySol: number; wallet: string; image_url: string | null }) {
   const s = load();
   const token: Token = {
-    mint: input.mint,
+    mint: randomAddress(),
     name: input.name,
     symbol: input.symbol.toUpperCase(),
-    description: input.description,
+    description: `${input.description.trim()}\n\n${feeTag(input.handle)}`.trim(),
     image_url: input.image_url,
-    x_handle: input.x_handle,
+    recipient_handle: input.handle,
     launcher_wallet: input.wallet,
     dev_buy_lamports: Math.round(input.devBuySol * 1e9),
     created_at: Date.now(),
   };
-  commit({ ...s, tokens: [token, ...s.tokens.filter((t) => t.mint !== token.mint)] });
+  const creators = getCreator(s, input.handle) ? s.creators : [...s.creators, { handle: input.handle, display_name: input.handle, avatar_url: null, payout_wallet: null }];
+  commit({ ...s, tokens: [token, ...s.tokens], creators });
   return token;
 }
 
-/** Simulate a fee claim on a random coin (its ad-budget share), and occasionally run a campaign from a budget. */
+export function signIn(handle: string) {
+  const s = load();
+  const creators = getCreator(s, handle) ? s.creators : [...s.creators, { handle, display_name: handle, avatar_url: null, payout_wallet: null }];
+  commit({ ...s, creators, session: handle });
+}
+export const signOut = () => commit({ ...load(), session: null });
+
+export function linkWallet(wallet: string | null) {
+  const s = load();
+  if (!s.session) return;
+  commit({ ...s, creators: s.creators.map((c) => (c.handle === s.session ? { ...c, payout_wallet: wallet } : c)) });
+  runPayouts();
+}
+
+/** Pay every creator who linked a wallet and crossed their next milestone. */
+export function runPayouts() {
+  const s = load();
+  const payouts = [...s.payouts];
+  for (const c of s.creators) {
+    if (!c.payout_wallet) continue;
+    const b = balanceFor({ ...s, payouts }, c.handle);
+    if (b.unpaid_lamports <= 0) continue;
+    const milestone = nextMilestoneCents(b.paid_cents);
+    if (b.paid_cents + b.unpaid_cents < milestone) continue;
+    payouts.push({ id: uid(), handle: c.handle, wallet: c.payout_wallet, lamports: b.unpaid_lamports, usd_cents: b.unpaid_cents, milestone_cents: milestone, ts: Date.now() });
+  }
+  if (payouts.length !== s.payouts.length) commit({ ...s, payouts });
+}
+
+/** Simulate a fee claim on a random token (the creator's 80% share), then pay milestones. */
 export function tick(force = false) {
   const s = load();
   if (!force && Date.now() - s.lastTick < TICK_MS) return;
   if (s.tokens.length === 0) return;
   const t = s.tokens[Math.floor(Math.random() * s.tokens.length)];
   const claimed = Math.round((0.01 + Math.random() * 0.2) * 1e9);
-  const lamports = Math.floor((claimed * AD_BUDGET_BPS) / 10_000);
-  const credits = [...s.credits, { id: uid(), mint: t.mint, lamports, usd_cents: cents(lamports), ts: Date.now() }];
-  let campaigns = s.campaigns;
-  const b = budgetFor({ ...s, credits }, t.mint);
-  if (b.available_cents > 2000 && Math.random() < 0.35) {
-    const spend = Math.round(b.available_cents * (0.3 + Math.random() * 0.4));
-    campaigns = [...campaigns, { id: uid(), mint: t.mint, type: CAMPAIGN_TYPES[Math.floor(Math.random() * CAMPAIGN_TYPES.length)], usd_cents: spend, impressions: Math.round(spend * (40 + Math.random() * 80)), status: "live", ts: Date.now() }];
-  }
-  commit({ ...s, lastTick: Date.now(), credits, campaigns });
+  const lamports = Math.floor((claimed * CREATOR_SHARE_BPS) / 10_000);
+  commit({ ...s, lastTick: Date.now(), credits: [...s.credits, { id: uid(), handle: t.recipient_handle, mint: t.mint, lamports, usd_cents: cents(lamports), ts: Date.now() }] });
+  runPayouts();
 }
 
+/** Starts the simulation loop for the lifetime of a component. Returns a cleanup function. */
 export function startSimulation() {
   const id = setInterval(() => tick(), 5_000);
   return () => clearInterval(id);

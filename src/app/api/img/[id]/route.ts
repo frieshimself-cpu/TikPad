@@ -3,7 +3,7 @@ import { getAsset } from "@/lib/server/db";
 
 export const dynamic = "force-dynamic";
 
-/** Token image for coins whose metadata AdPad hosts itself. */
+/** Token image for coins whose metadata HushX hosts itself. */
 export async function GET(_req: Request, { params }: RouteContext<"/api/img/[id]">) {
   const { id } = await params;
   const a = await getAsset(id);
