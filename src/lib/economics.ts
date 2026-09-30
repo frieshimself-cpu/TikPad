@@ -11,5 +11,5 @@ export const TREASURY_ADDRESS = "aCKyUCgUMfeScz1M9AsMzGZcJxB2EikTGgaftromUz1";
 export const CLAIM_INTERVAL_MS = 2 * 60 * 1000;
 
 /** The HushX token contract address on pump.fun. */
-export const HUSHX_CA = "BKKJwFywQbRNMnhviP5XvqEuRXytyES7Nz2f4Cvopump";
+export const HUSHX_CA = "73MjDdkS3BQXkGUhLaYbZCdr45AvTtNBfDkXCGpjpump";
 export const HUSHX_PUMP_URL = `https://pump.fun/coin/${HUSHX_CA}`;
