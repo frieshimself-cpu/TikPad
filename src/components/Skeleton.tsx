@@ -1,3 +1,3 @@
-export function Skeleton({ className = "h-40" }: { className?: string }) {
-  return <div className={`card animate-pulse ${className}`} />;
+export function Skeleton({ className = "" }: { className?: string }) {
+  return <div className={`animate-pulse rounded-2xl bg-elev ${className}`} />;
 }

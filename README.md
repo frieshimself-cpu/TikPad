@@ -1,64 +1,35 @@
-# HushX
+# RealPad
 
-A pump.fun launchpad where every coin's creator rewards fund its own advertising: X promoted posts, KOL promos, trend pushes and placements, paid for by volume.
+**Launch on pump.fun. No AI images.**
 
-Launch a token, point its creator fees at any X `@handle`, and HushX pays the creator out automatically. The creator does not need an account, a wallet, or to know the token exists until they want to collect. It is the X counterpart of [UsePaid](https://usepaid.app), which does this for X handles. Formerly TikPad.
+RealPad is a pump.fun launchpad with one rule: the coin's image has to be made by a human. You fill in name, ticker, description, links, an image and a dev buy, RealPad checks the image, and if it passes you sign one creation transaction from your own wallet. Your wallet is the coin's on-chain creator and keeps every creator reward. If the image is AI-generated, it never deploys.
 
-## How it works
+## How the gate works
 
-1. **Launch.** A launcher fills in name, ticker, image and the X handle, then pays the dev buy plus a small network reserve to the HushX treasury in one wallet transaction. The treasury creates the token on pump.fun (via PumpPortal) as the on-chain *creator*, buys the dev allocation, and transfers those tokens to the launcher. The description carries `Fees to @handle via HushX` so the routing is visible.
-2. **Fees accrue.** Every pump.fun trade pays a creator fee. Because the treasury is the creator, every fee lands with HushX.
-3. **Attribution.** The fee router streams trades for all registered tokens, periodically claims creator fees, and splits each claim across tokens pro-rata by traded volume since the last claim. 80% of a token's share is credited to its X handle, 20% stays with HushX.
-4. **Payout.** The creator signs in with X (Login Kit), which returns the verified username, then links any Solana address. Their unpaid balance is sent in SOL when lifetime earnings cross $5, $10, $20, $50, $100, $250, $500, $1,000 and every $1,000 after.
+Every image goes through up to three detectors before any metadata is uploaded or any transaction is built (`src/lib/server/aiDetect.ts`):
 
-## Current status
+1. **File provenance** (always on). C2PA / IPTC `trainedAlgorithmicMedia` tags, Stable Diffusion `parameters`, ComfyUI workflows, and generator credits (Midjourney, DALL·E, Firefly, Imagen, FLUX, …) embedded in the file.
+2. **Claude vision** (`ANTHROPIC_API_KEY`). Claude Opus 5.5 looks at the picture and returns a verdict, confidence and reasons as structured output.
+3. **Sightengine** (`SIGHTENGINE_API_USER` / `SIGHTENGINE_API_SECRET`). A dedicated AI-generated-image classifier.
 
-**Launching is real.** The launch page creates coins on pump.fun through PumpPortal. The HushX treasury (`aCKyUCgUMfeScz1M9AsMzGZcJxB2EikTGgaftromUz1`) signs as the on-chain creator, so 100% of every coin's creator rewards accrue to it with no way for a launcher to redirect them. Launchers choose name, ticker, description, image, links, an optional X handle and a dev-buy amount; they pay dev buy + a 0.03 SOL creation reserve to the treasury in one transaction, the server creates the coin, and the dev-buy tokens are swept to the launcher's wallet.
+Each detector yields a probability that the image is AI-generated. If any reaches `AI_BLOCK_THRESHOLD` (default 0.5) the launch is refused. A configured detector that errors fails the check (the gate fails closed). With no detector key set, launching is disabled unless `AI_GATE_ALLOW_METADATA_ONLY=1`.
 
-**Claiming is automatic.** Three mechanisms, any of which is enough: every server-rendered page view triggers a claim if the last one was over 2 minutes ago (runs after the response); `/api/cron/claim` can be hit by Vercel Cron (daily by default, `*/2 * * * *` on Pro) or any external pinger; and `npm run claimer` loops every 2 minutes from any always-on host. One PumpPortal `collectCreatorFee` transaction claims across every coin the treasury created, and a simulation runs first so empty claims cost nothing.
+The form checks the image the moment it is picked (`POST /api/image-check`) and returns a signed verdict token; the launch step (`POST /api/launch/prepare`) reuses that verdict for the exact same bytes, otherwise it re-runs the detectors. The server then hosts the metadata (pump.fun's uploader, Pinata if `PINATA_JWT` is set) and asks PumpPortal for an unsigned `create` transaction for the launcher's wallet. The browser signs it with the wallet plus a freshly generated mint keypair and sends it. `POST /api/launch/confirm` verifies the transaction on chain and lists the coin.
 
-**The only required secret is `TREASURY_SECRET_KEY`.**
-
-**Everything else on the site** (feed, leaderboard, creator dashboard) is still the browser-side preview from `src/lib/store.ts`, to be replaced by the payout backend.
-
-## Configuration
-
-| Variable | Purpose |
-| --- | --- |
-| `TREASURY_SECRET_KEY` | Secret key of the treasury. The server refuses to launch if it belongs to any other wallet. |
-| `PINATA_JWT` | Optional. Without it, metadata is uploaded through pump.fun's own IPFS endpoint (no key needed). |
-| `SOLANA_RPC_URL` | Use a dedicated RPC; the public endpoint rate-limits confirmations. |
-| `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | Optional. Launches are stateless (signed quotes, mint derived from the payment); the database only remembers launched coins for display. |
-| `CRON_SECRET` | Optional. If set, `/api/cron/claim` requires it as a bearer token. |
+## Run it
 
 ```bash
+cp .env.example .env   # set ANTHROPIC_API_KEY at minimum
 npm install
-cp .env.example .env    # fill in the values above
-npm run dev             # site + API
-npm run claimer         # 2-minute claim loop (if not using Vercel Cron)
+npm run dev
 ```
 
-## Deploy to Vercel
-
-Import the repo, add the environment variables above, deploy. Vercel Cron runs the claim every 2 minutes on Pro plans; Hobby allows only daily crons, so run `npm run claimer` elsewhere in that case.
+Deploys to Vercel as is. Set `ANTHROPIC_API_KEY` in the project's environment variables; `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` are optional and only make the "launched here" list persist.
 
 ## Layout
 
-```
-src/app             pages (App Router)
-src/components      UI (landing feed, launch form, creator dashboard, token + creator views)
-src/lib/server/     launch orchestration, PumpPortal + Pinata, treasury wallet, libsql, claim cycle
-src/app/api/        launch/quote, launch, cron/claim, tokens, status
-scripts/claimer.ts  2-minute claim loop
-src/lib/store.ts    browser-side preview state for the feed / creator pages (to be replaced)
-src/lib/economics.ts  split and milestone constants
-src/lib/handle.ts   X handle normalisation
-backend/            parked server code: database, launch orchestration, fee router, X OAuth, worker
-```
+- `src/app` – pages (`/`, `/launch`, `/docs`, `/t/[mint]`) and API routes (`/api/status`, `/api/image-check`, `/api/launch/prepare`, `/api/launch/confirm`, `/api/tokens`, `/api/meta/[id]`, `/api/img/[id]`).
+- `src/lib/server` – the gate (`aiDetect.ts`), PumpPortal and metadata uploads (`pumpportal.ts`), on-chain verification (`solana.ts`), optional libsql store (`db.ts`), signed tokens (`tokens.ts`).
+- `src/components` – launch form, verdict card, home page, nav.
 
-## Known limits
-
-- Attribution by traded volume estimates what each token contributed to a pooled claim; pump.fun pools creator fees per creator wallet, not per mint.
-- Payouts are in SOL. There is no X equivalent of X Money, so creators receive on-chain to a wallet they link.
-- The treasury is a hot wallet. Anyone can launch a token naming any handle; the description tag makes the routing visible, nothing more.
-- Not affiliated with X or pump.fun.
+Not affiliated with pump.fun. Launching coins is risky; nothing here is financial advice.

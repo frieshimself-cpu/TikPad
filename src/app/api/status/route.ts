@@ -1,20 +1,19 @@
 import { NextResponse } from "next/server";
-import { isLaunchConfigured, serverConfig } from "@/lib/server/config";
-import { scheduleOpportunisticClaim } from "@/lib/server/autoclaim";
+import { detectorNames, gateReady } from "@/lib/server/aiDetect";
+import { serverConfig } from "@/lib/server/config";
 import { dbAvailable } from "@/lib/server/db";
-import { TREASURY_ADDRESS } from "@/lib/economics";
 
 export const dynamic = "force-dynamic";
 
-/** Tells the launch form whether real launches are enabled and what they cost. */
+/** Tells the launch form whether launches are open, which detectors guard them, and the limits. */
 export async function GET() {
-  scheduleOpportunisticClaim();
   return NextResponse.json({
-    launchEnabled: isLaunchConfigured(),
-    treasury: TREASURY_ADDRESS,
-    networkLamports: serverConfig.launchNetworkLamports,
-    feeLamports: serverConfig.launchFeeLamports,
+    launchEnabled: gateReady(),
+    detectors: detectorNames(),
+    threshold: serverConfig.aiBlockThreshold,
     maxDevBuySol: serverConfig.maxDevBuySol,
+    priorityFeeSol: serverConfig.priorityFeeSol,
+    slippagePct: serverConfig.slippagePct,
     persistentDb: dbAvailable(),
   });
 }

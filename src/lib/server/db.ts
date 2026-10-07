@@ -1,7 +1,7 @@
 /**
- * libsql data layer. TURSO_DATABASE_URL for hosted (required on Vercel for
- * launches to be reliable), otherwise a local file. Tables: launched tokens,
- * one-time launch quotes, and fee claims.
+ * Optional libsql data layer: hosted Turso anywhere, a local file outside
+ * Vercel, nothing on Vercel without Turso. Launches never depend on it; it
+ * only remembers launched coins and gate decisions for display.
  */
 import type { Client, InArgs } from "@libsql/client";
 import { serverConfig } from "./config";
@@ -16,21 +16,15 @@ export interface TokenRow {
   launcher_wallet: string;
   dev_buy_lamports: number;
   create_sig: string;
-  sweep_sig: string | null;
+  verdict_json: string | null;
   created_at: number;
 }
-export interface QuoteRow {
-  id: string;
-  wallet: string;
-  dev_buy_lamports: number;
-  total_lamports: number;
-  created_at: number;
-  used: number;
-}
-export interface ClaimRow {
+export interface GateRow {
   id: number;
-  sig: string;
-  lamports: number;
+  hash: string;
+  allowed: number;
+  ai_probability: number;
+  summary: string;
   ts: number;
 }
 
@@ -45,19 +39,15 @@ CREATE TABLE IF NOT EXISTS tokens (
   launcher_wallet TEXT NOT NULL,
   dev_buy_lamports INTEGER NOT NULL DEFAULT 0,
   create_sig TEXT NOT NULL,
-  sweep_sig TEXT,
+  verdict_json TEXT,
   created_at INTEGER NOT NULL
 );
-CREATE TABLE IF NOT EXISTS launch_quotes (
-  id TEXT PRIMARY KEY,
-  wallet TEXT NOT NULL,
-  dev_buy_lamports INTEGER NOT NULL,
-  total_lamports INTEGER NOT NULL,
-  created_at INTEGER NOT NULL,
-  used INTEGER NOT NULL DEFAULT 0
-);
-CREATE TABLE IF NOT EXISTS used_payments (
-  sig TEXT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS gate_checks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  hash TEXT NOT NULL,
+  allowed INTEGER NOT NULL,
+  ai_probability REAL NOT NULL,
+  summary TEXT NOT NULL,
   ts INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS assets (
@@ -71,35 +61,22 @@ CREATE TABLE IF NOT EXISTS metadata (
   json TEXT NOT NULL,
   created_at INTEGER NOT NULL
 );
-CREATE TABLE IF NOT EXISTS claims (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  sig TEXT NOT NULL UNIQUE,
-  lamports INTEGER NOT NULL,
-  ts INTEGER NOT NULL
-);
 `;
 
 declare global {
-  var __hushxDb: Promise<Client> | undefined;
+  var __realpadDb: Promise<Client> | undefined;
 }
 
-/**
- * The database is optional. Hosted Turso (any environment) or a local file
- * (outside Vercel). On Vercel without Turso there is no database: launches
- * still work (they are stateless) and lists simply come back empty.
- * The client is imported lazily so no page render ever depends on it.
- */
 export function dbUrl(): string | null {
   if (serverConfig.tursoUrl) return serverConfig.tursoUrl;
   if (process.env.VERCEL) return null;
   return `file:${serverConfig.dbPath}`;
 }
 export const dbAvailable = () => dbUrl() !== null;
-export const isEphemeralDb = () => !dbAvailable();
 
 export function db(): Promise<Client> {
-  if (globalThis.__hushxDb) return globalThis.__hushxDb;
-  globalThis.__hushxDb = (async () => {
+  if (globalThis.__realpadDb) return globalThis.__realpadDb;
+  globalThis.__realpadDb = (async () => {
     const u = dbUrl();
     if (!u) throw new Error("No database configured (set TURSO_DATABASE_URL).");
     let c: Client;
@@ -110,14 +87,13 @@ export function db(): Promise<Client> {
       const { createClient } = await import("@libsql/client");
       c = createClient({ url: u });
     } else {
-      // Remote Turso over HTTP: no native binary needed.
       const { createClient } = await import("@libsql/client/web");
       c = createClient({ url: u, authToken: serverConfig.tursoAuthToken || undefined });
     }
     await c.executeMultiple(SCHEMA);
     return c;
   })();
-  return globalThis.__hushxDb;
+  return globalThis.__realpadDb;
 }
 
 async function all<T>(sql: string, args: InArgs = []): Promise<T[]> {
@@ -132,34 +108,28 @@ async function run(sql: string, args: InArgs = []): Promise<number> {
   return (await (await db()).execute({ sql, args })).rowsAffected;
 }
 
-/* quotes */
-export const insertQuote = (q: Omit<QuoteRow, "used" | "created_at">) =>
-  run("INSERT INTO launch_quotes(id,wallet,dev_buy_lamports,total_lamports,created_at) VALUES(?,?,?,?,?)", [q.id, q.wallet, q.dev_buy_lamports, q.total_lamports, Date.now()]);
-export const getQuote = (id: string) => one<QuoteRow>("SELECT * FROM launch_quotes WHERE id=?", [id]);
-/** Atomically marks a quote used. False if it was already used. */
-export const claimQuote = async (id: string) => (await run("UPDATE launch_quotes SET used=1 WHERE id=? AND used=0", [id])) === 1;
-/** Records a payment signature. False if this payment was already spent on a launch. */
-export const spendPayment = async (sig: string) => (await run("INSERT OR IGNORE INTO used_payments(sig,ts) VALUES(?,?)", [sig, Date.now()])) === 1;
-
 /* tokens */
 export const insertToken = (t: Omit<TokenRow, "created_at">) =>
   run(
-    "INSERT INTO tokens(mint,name,symbol,description,image_url,metadata_uri,launcher_wallet,dev_buy_lamports,create_sig,sweep_sig,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
-    [t.mint, t.name, t.symbol, t.description, t.image_url, t.metadata_uri, t.launcher_wallet, t.dev_buy_lamports, t.create_sig, t.sweep_sig, Date.now()],
+    "INSERT OR IGNORE INTO tokens(mint,name,symbol,description,image_url,metadata_uri,launcher_wallet,dev_buy_lamports,create_sig,verdict_json,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+    [t.mint, t.name, t.symbol, t.description, t.image_url, t.metadata_uri, t.launcher_wallet, t.dev_buy_lamports, t.create_sig, t.verdict_json, Date.now()],
   );
-export const setSweepSig = (mint: string, sig: string) => run("UPDATE tokens SET sweep_sig=? WHERE mint=?", [sig, mint]);
 export const listTokens = (limit = 100) => all<TokenRow>("SELECT * FROM tokens ORDER BY created_at DESC LIMIT ?", [limit]);
 export const getToken = (mint: string) => one<TokenRow>("SELECT * FROM tokens WHERE mint=?", [mint]);
 
-/* self-hosted token metadata (used when PINATA_JWT is not set) */
-export const insertAsset = (id: string, contentType: string, bytes: Uint8Array) =>
-  run("INSERT INTO assets(id,content_type,bytes,created_at) VALUES(?,?,?,?)", [id, contentType, bytes, Date.now()]);
-export const getAsset = (id: string) => one<{ content_type: string; bytes: ArrayBuffer | Uint8Array }>("SELECT content_type, bytes FROM assets WHERE id=?", [id]);
-export const insertMetadata = (id: string, json: string) => run("INSERT INTO metadata(id,json,created_at) VALUES(?,?,?)", [id, json, Date.now()]);
-export const getMetadata = async (id: string) => (await one<{ json: string }>("SELECT json FROM metadata WHERE id=?", [id]))?.json;
+/* gate decisions */
+export const insertGateCheck = (hash: string, allowed: boolean, aiProbability: number, summary: string) =>
+  run("INSERT INTO gate_checks(hash,allowed,ai_probability,summary,ts) VALUES(?,?,?,?,?)", [hash, allowed ? 1 : 0, aiProbability, summary, Date.now()]);
+export const gateTotals = async () =>
+  (await one<{ checked: number; blocked: number }>("SELECT COUNT(*) AS checked, COALESCE(SUM(CASE WHEN allowed=0 THEN 1 ELSE 0 END),0) AS blocked FROM gate_checks")) ?? {
+    checked: 0,
+    blocked: 0,
+  };
+export const recentBlocked = (limit = 20) => all<GateRow>("SELECT * FROM gate_checks WHERE allowed=0 ORDER BY ts DESC LIMIT ?", [limit]);
 
-/* claims */
-export const insertClaim = (sig: string, lamports: number) => run("INSERT OR IGNORE INTO claims(sig,lamports,ts) VALUES(?,?,?)", [sig, lamports, Date.now()]);
-export const listClaims = (limit = 50) => all<ClaimRow>("SELECT * FROM claims ORDER BY ts DESC LIMIT ?", [limit]);
-export const claimTotals = async () =>
-  (await one<{ n: number; lamports: number }>("SELECT COUNT(*) AS n, COALESCE(SUM(lamports),0) AS lamports FROM claims")) ?? { n: 0, lamports: 0 };
+/* self-hosted token metadata (fallback when pump.fun's uploader is down and no Pinata key is set) */
+export const insertAsset = (id: string, contentType: string, bytes: Uint8Array) =>
+  run("INSERT OR IGNORE INTO assets(id,content_type,bytes,created_at) VALUES(?,?,?,?)", [id, contentType, bytes, Date.now()]);
+export const getAsset = (id: string) => one<{ content_type: string; bytes: ArrayBuffer | Uint8Array }>("SELECT content_type, bytes FROM assets WHERE id=?", [id]);
+export const insertMetadata = (id: string, json: string) => run("INSERT OR IGNORE INTO metadata(id,json,created_at) VALUES(?,?,?)", [id, json, Date.now()]);
+export const getMetadata = async (id: string) => (await one<{ json: string }>("SELECT json FROM metadata WHERE id=?", [id]))?.json;
