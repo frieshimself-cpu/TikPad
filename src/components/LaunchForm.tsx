@@ -105,10 +105,7 @@ export function LaunchForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!publicKey) {
-      setVisible(true);
-      return;
-    }
+    if (!publicKey) return;
     if (!image || check.state !== "done") return;
     try {
       // 1. Server: gate + metadata + unsigned create transaction for this wallet.
@@ -164,6 +161,21 @@ export function LaunchForm() {
           <a href={`https://solscan.io/tx/${result.signature}`} target="_blank" rel="noreferrer" className="btn btn-ghost">Creation tx</a>
           <Link href={`/t/${result.mint}`} className="btn btn-ghost">Coin page</Link>
         </div>
+      </div>
+    );
+  }
+
+  if (!publicKey) {
+    return (
+      <div className="card p-8 text-center sm:p-12">
+        <span className="pill pill-ink">Wallet required</span>
+        <h2 className="mt-5 text-3xl">Connect a wallet to launch</h2>
+        <p className="mx-auto mt-3 max-w-md text-muted">
+          Coins are created from your own wallet. It pays for the launch, signs the creation transaction, and becomes the coin&apos;s creator on pump.fun.
+          {BRAND} never holds your keys or your funds.
+        </p>
+        <button type="button" onClick={() => setVisible(true)} className="btn btn-primary mt-8 h-12 px-8 text-base">Connect wallet</button>
+        <p className="mt-4 text-xs text-dim">Phantom and Solflare are supported.</p>
       </div>
     );
   }
@@ -260,12 +272,10 @@ export function LaunchForm() {
           </dl>
           <div className="flex items-center gap-4">
             <span className="hidden text-xs text-muted sm:block">
-              Signed by your wallet. <Link href="/docs" className="underline">Details</Link>
+              Signed by {short(publicKey.toBase58())}. <Link href="/docs" className="underline">Details</Link>
             </span>
-            <button type="submit" className="btn btn-primary h-12 px-7 text-base" disabled={!canSubmit && !!publicKey}>
-              {!publicKey
-                ? "Connect wallet"
-                : step === "preparing"
+            <button type="submit" className="btn btn-primary h-12 px-7 text-base" disabled={!canSubmit}>
+              {step === "preparing"
                   ? "Verifying & preparing…"
                   : step === "signing"
                     ? "Confirm in wallet…"
