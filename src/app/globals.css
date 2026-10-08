@@ -1,23 +1,24 @@
 @import "tailwindcss";
 @import "@solana/wallet-adapter-react-ui/styles.css";
 
-/* RealPad: a warm, paper-like gallery. Human-made things, verified. */
+/* RealPad: drawn in MS Paint by someone who definitely is not an AI. */
 :root {
-  --bg: #f4f1ea;
-  --bg-elev: #ebe7dd;
-  --bg-card: #fffdf8;
-  --line: #e2ddd0;
-  --line-strong: #cfc8b8;
-  --fg: #16150f;
-  --fg-muted: #6b6758;
-  --fg-dim: #9b9686;
-  --accent: #16150f;
-  --green: #1f8a4c;
-  --green-soft: #e3f3e8;
-  --rose: #c8323a;
-  --rose-soft: #fbe6e6;
-  --amber: #b7791f;
-  --amber-soft: #fbf0d9;
+  --bg: #ffffff;
+  --bg-elev: #fffbe6;
+  --bg-card: #ffffff;
+  --line: #111111;
+  --line-strong: #111111;
+  --fg: #111111;
+  --fg-muted: #333333;
+  --fg-dim: #777777;
+  --accent: #ffde00;
+  --green: #1aa32a;
+  --green-soft: #d9ffd9;
+  --rose: #e3161b;
+  --rose-soft: #ffdede;
+  --amber: #c77d00;
+  --amber-soft: #fff1c2;
+  --blue: #2a5fff;
 }
 
 @theme inline {
@@ -36,9 +37,10 @@
   --color-rose-soft: var(--rose-soft);
   --color-amber: var(--amber);
   --color-amber-soft: var(--amber-soft);
-  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --color-blue: var(--blue);
+  --font-sans: var(--font-body), "Comic Sans MS", "Chalkboard SE", cursive;
   --font-mono: var(--font-mono-face), ui-monospace, monospace;
-  --font-display: var(--font-display-face), Georgia, serif;
+  --font-display: var(--font-display-face), "Comic Sans MS", cursive;
 }
 
 html {
@@ -47,178 +49,201 @@ html {
 
 body {
   background: var(--bg);
-  background-image: radial-gradient(rgb(22 21 15 / 0.045) 1px, transparent 1px);
-  background-size: 22px 22px;
+  /* graph paper, drawn slightly crooked */
+  background-image: linear-gradient(rgb(17 17 17 / 0.06) 1px, transparent 1px), linear-gradient(90deg, rgb(17 17 17 / 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
   color: var(--fg);
   font-family: var(--font-sans);
+  font-size: 1.05rem;
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3 {
   font-family: var(--font-display);
-  letter-spacing: -0.015em;
+  letter-spacing: 0;
   font-weight: 400;
-  line-height: 1.05;
+  line-height: 1.1;
 }
 
 ::selection {
-  background: #16150f;
-  color: #f4f1ea;
+  background: var(--accent);
+  color: #111;
 }
 
 @layer components {
   .num { font-variant-numeric: tabular-nums; }
   .mono { font-family: var(--font-mono); }
 
+  /* the "I drew a rectangle freehand" border radius */
+  .wobbly {
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  }
+  .wobbly-2 {
+    border-radius: 15px 255px 15px 225px / 225px 15px 255px 15px;
+  }
+
   .card {
     background: var(--bg-card);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    box-shadow: 0 1px 0 rgb(22 21 15 / 0.03), 0 24px 50px -40px rgb(22 21 15 / 0.35);
+    border: 3px solid var(--line);
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+    box-shadow: 6px 6px 0 var(--line);
   }
+  .card-yellow { background: var(--bg-elev); }
+  .tilt-l { transform: rotate(-1deg); }
+  .tilt-r { transform: rotate(1deg); }
 
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    height: 44px;
+    height: 46px;
     padding: 0 1.25rem;
-    border-radius: 999px;
-    font-weight: 600;
-    font-size: 0.925rem;
-    transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.05s, box-shadow 0.15s;
+    border: 3px solid var(--line);
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.05rem;
+    box-shadow: 4px 4px 0 var(--line);
+    transition: transform 0.08s, box-shadow 0.08s, background 0.1s;
     white-space: nowrap;
   }
-  .btn:active { transform: translateY(1px); }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-  .btn-primary {
-    background: var(--fg);
-    color: var(--bg);
-    box-shadow: 0 10px 30px -14px rgb(22 21 15 / 0.7);
-  }
-  .btn-primary:hover:not(:disabled) { background: #2a2820; }
-  .btn-ghost {
-    background: transparent;
-    color: var(--fg);
-    border: 1px solid var(--line-strong);
-  }
-  .btn-ghost:hover:not(:disabled) { background: var(--bg-card); border-color: var(--fg); }
+  .btn:hover:not(:disabled) { transform: translate(-1px, -1px) rotate(-1deg); box-shadow: 6px 6px 0 var(--line); }
+  .btn:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--line); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: 2px 2px 0 var(--line); }
+  .btn-primary { background: var(--accent); color: #111; }
+  .btn-primary:hover:not(:disabled) { background: #ffe94d; }
+  .btn-ghost { background: #fff; color: #111; }
+  .btn-ghost:hover:not(:disabled) { background: var(--bg-elev); }
   .btn-green { background: var(--green); color: #fff; }
-  .btn-green:hover:not(:disabled) { background: #176f3d; }
 
   .input {
     width: 100%;
-    height: 46px;
+    height: 48px;
     padding: 0 1rem;
-    border-radius: 12px;
-    background: var(--bg-card);
-    border: 1px solid var(--line-strong);
+    border: 3px solid var(--line);
+    border-radius: 15px 255px 15px 225px / 225px 15px 255px 15px;
+    background: #fff;
     color: var(--fg);
-    font-size: 0.95rem;
+    font-family: var(--font-sans);
+    font-size: 1.05rem;
     outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: box-shadow 0.1s, transform 0.1s;
   }
-  .input:focus { border-color: var(--fg); box-shadow: 0 0 0 3px rgb(22 21 15 / 0.1); }
+  .input:focus { box-shadow: 4px 4px 0 var(--blue); transform: rotate(-0.4deg); }
   .input::placeholder { color: var(--fg-dim); }
   textarea.input { height: auto; padding: 0.75rem 1rem; resize: vertical; }
 
   .label {
     display: block;
-    margin-bottom: 0.4rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--fg-muted);
+    margin-bottom: 0.35rem;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    color: var(--fg);
   }
 
   .pill {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    height: 26px;
-    padding: 0 0.7rem;
-    border-radius: 999px;
-    border: 1px solid var(--line-strong);
-    background: var(--bg-card);
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--fg-muted);
+    height: 30px;
+    padding: 0 0.8rem;
+    border: 2.5px solid var(--line);
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+    background: #fff;
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    color: var(--fg);
     white-space: nowrap;
+    box-shadow: 2px 2px 0 var(--line);
   }
-  .pill-green { border-color: #bfe0cb; background: var(--green-soft); color: var(--green); }
-  .pill-rose { border-color: #f1c2c2; background: var(--rose-soft); color: var(--rose); }
-  .pill-amber { border-color: #ecd3a0; background: var(--amber-soft); color: var(--amber); }
-  .pill-ink { border-color: var(--fg); background: var(--fg); color: var(--bg); }
+  .pill-green { background: var(--green-soft); }
+  .pill-rose { background: var(--rose-soft); }
+  .pill-amber { background: var(--amber-soft); }
+  .pill-ink { background: var(--accent); }
 
   .eyebrow {
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    font-family: var(--font-display);
+    font-size: 1rem;
     color: var(--fg-dim);
   }
 
-  /* A rubber-stamp style verdict. */
+  /* The red "no" sign from the logo, as a stamp. */
   .stamp {
     display: inline-block;
-    padding: 0.2rem 0.7rem;
-    border: 2.5px solid currentColor;
-    border-radius: 6px;
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.16em;
+    padding: 0.15rem 0.7rem;
+    border: 3px solid currentColor;
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    line-height: 1.4;
     text-transform: uppercase;
-    transform: rotate(-6deg);
-    mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='40'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.9'/></filter><rect width='120' height='40' filter='url(%23n)' fill='white'/></svg>");
-    mask-size: 100% 100%;
+    transform: rotate(-7deg);
+    background: #fff;
   }
   .stamp-green { color: var(--green); }
-  .stamp-rose { color: var(--rose); }
-
-  .lift { transition: transform 0.2s, box-shadow 0.2s; }
-  .lift:hover { transform: translateY(-2px); box-shadow: 0 20px 40px -24px rgb(22 21 15 / 0.4); }
-
-  .hairline { border-top: 1px solid var(--line); }
-
-  .scan {
-    position: relative;
-    overflow: hidden;
+  .stamp-rose {
+    color: var(--rose);
+    background-image: linear-gradient(to top right, transparent 46%, var(--rose) 47%, var(--rose) 53%, transparent 54%);
   }
+
+  .lift { transition: transform 0.15s, box-shadow 0.15s; }
+  .lift:hover { transform: translate(-2px, -2px) rotate(-0.5deg); box-shadow: 8px 8px 0 var(--line); }
+
+  /* wobbly underline, like a marker */
+  .scribble {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='12' viewBox='0 0 120 12'><path d='M2 7c15-5 25 4 40 0s25-5 40 0 25 4 36-1' fill='none' stroke='%23e3161b' stroke-width='4' stroke-linecap='round'/></svg>");
+    background-repeat: repeat-x;
+    background-position: 0 100%;
+    background-size: 120px 12px;
+    padding-bottom: 8px;
+  }
+  .highlight {
+    background: linear-gradient(transparent 45%, var(--accent) 45%, var(--accent) 90%, transparent 90%);
+  }
+
+  .scan { position: relative; overflow: hidden; }
   .scan::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, transparent 0%, rgb(31 138 76 / 0.25) 50%, transparent 100%);
+    background: linear-gradient(180deg, transparent 0%, rgb(42 95 255 / 0.3) 50%, transparent 100%);
     background-size: 100% 40%;
     background-repeat: no-repeat;
-    animation: scan 1.6s linear infinite;
+    animation: scan 1.4s linear infinite;
   }
-  .float-a { animation: float-a 6s ease-in-out infinite; }
-  .float-b { animation: float-b 7s ease-in-out infinite; }
+  .float-a { animation: float-a 5s ease-in-out infinite; }
+  .float-b { animation: float-b 6s ease-in-out infinite; }
+  .wiggle { animation: wiggle 2.2s ease-in-out infinite; }
   .feed-in { animation: feed-in 0.35s ease-out; }
 }
 
-/* Wallet adapter button, restyled to match. */
+/* Wallet adapter button, redrawn. */
 .wallet-adapter-button-trigger {
-  background: var(--fg) !important;
-  color: var(--bg) !important;
-  border-radius: 999px !important;
-  height: 40px !important;
-  font-family: var(--font-sans) !important;
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-  padding: 0 1.1rem !important;
+  background: var(--accent) !important;
+  color: #111 !important;
+  border: 3px solid #111 !important;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px !important;
+  box-shadow: 3px 3px 0 #111 !important;
+  height: 42px !important;
+  font-family: var(--font-display) !important;
+  font-size: 1rem !important;
+  font-weight: 400 !important;
+  padding: 0 1rem !important;
+  white-space: nowrap !important;
 }
-.wallet-adapter-button-trigger:hover { background: #2a2820 !important; }
-.wallet-adapter-modal-wrapper { background: var(--bg-card) !important; color: var(--fg) !important; border: 1px solid var(--line); }
-.wallet-adapter-modal-title { color: var(--fg) !important; }
-.wallet-adapter-modal-list .wallet-adapter-button { color: var(--fg) !important; }
+@media (max-width: 640px) {
+  .wallet-adapter-button-trigger { font-size: 0.9rem !important; padding: 0 0.7rem !important; height: 38px !important; }
+}
+.wallet-adapter-button-trigger:hover { background: #ffe94d !important; }
+.wallet-adapter-modal-wrapper { background: #fff !important; color: #111 !important; border: 3px solid #111; border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px !important; box-shadow: 8px 8px 0 #111 !important; font-family: var(--font-sans) !important; }
+.wallet-adapter-modal-title { color: #111 !important; font-family: var(--font-display) !important; }
+.wallet-adapter-modal-list .wallet-adapter-button { color: #111 !important; font-family: var(--font-sans) !important; }
 .wallet-adapter-modal-list .wallet-adapter-button:hover { background: var(--bg-elev) !important; }
-.wallet-adapter-modal-button-close { background: var(--bg-elev) !important; }
-.wallet-adapter-modal-button-close svg { fill: var(--fg) !important; }
-.wallet-adapter-dropdown-list { background: var(--bg-card) !important; border: 1px solid var(--line); }
-.wallet-adapter-dropdown-list-item { color: var(--fg) !important; }
+.wallet-adapter-modal-button-close { background: var(--rose-soft) !important; border: 2px solid #111 !important; }
+.wallet-adapter-modal-button-close svg { fill: #111 !important; }
+.wallet-adapter-dropdown-list { background: #fff !important; border: 3px solid #111; box-shadow: 4px 4px 0 #111; }
+.wallet-adapter-dropdown-list-item { color: #111 !important; font-family: var(--font-sans) !important; }
 .wallet-adapter-dropdown-list-item:hover { background: var(--bg-elev) !important; }
 
 @keyframes scan {
@@ -230,10 +255,14 @@ h1, h2, h3 {
   to { opacity: 1; transform: none; }
 }
 @keyframes float-a {
-  0%, 100% { transform: translateY(0) rotate(-2deg); }
-  50% { transform: translateY(-10px) rotate(-2deg); }
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-10px) rotate(-1deg); }
 }
 @keyframes float-b {
-  0%, 100% { transform: translateY(0) rotate(3deg); }
-  50% { transform: translateY(-8px) rotate(3deg); }
+  0%, 100% { transform: translateY(0) rotate(4deg); }
+  50% { transform: translateY(-8px) rotate(2deg); }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
 }

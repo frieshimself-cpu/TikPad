@@ -18,23 +18,23 @@ export function ContractAddress({ compact = false }: { compact?: boolean }) {
 
   if (compact) {
     return (
-      <button onClick={copy} className="mono flex w-full items-center gap-2 rounded-xl border border-line bg-card px-3 py-2.5 text-left text-[11px] text-muted hover:text-fg" title="Copy contract address">
-        <span className="shrink-0 font-semibold text-dim">CA</span>
+      <button onClick={copy} className="mono wobbly-2 flex w-full items-center gap-2 border-[3px] border-line bg-white px-3 py-2.5 text-left text-[11px] text-muted shadow-[3px_3px_0_#111] hover:bg-elev" title="Copy contract address">
+        <span className="font-display shrink-0 text-sm">CA</span>
         <span className="min-w-0 flex-1 truncate">{TOKEN_CA}</span>
-        <span className="shrink-0 font-semibold text-green">{copied ? "✓" : "copy"}</span>
+        <span className="font-display shrink-0 text-sm text-green">{copied ? "copied!" : "copy"}</span>
       </button>
     );
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-line bg-card p-2 pl-5 sm:flex-row sm:items-center">
+    <div className="card flex flex-col gap-3 p-2 pl-5 sm:flex-row sm:items-center">
       <div className="min-w-0 flex-1 py-2 sm:py-0">
-        <div className="text-xs font-medium text-muted">${TOKEN_SYMBOL} contract</div>
-        <div className="mono mt-0.5 select-all break-all text-sm font-medium">{TOKEN_CA}</div>
+        <div className="font-display text-sm">${TOKEN_SYMBOL} contract address</div>
+        <div className="mono mt-0.5 select-all break-all text-sm">{TOKEN_CA}</div>
       </div>
-      <div className="flex gap-2">
-        <button onClick={copy} className="btn btn-ghost h-10">{copied ? "Copied" : "Copy"}</button>
-        <a href={TOKEN_PUMP_URL} target="_blank" rel="noreferrer" className="btn btn-primary h-10">Buy on pump.fun</a>
+      <div className="flex gap-3">
+        <button onClick={copy} className="btn btn-ghost h-11">{copied ? "copied!" : "copy"}</button>
+        <a href={TOKEN_PUMP_URL} target="_blank" rel="noreferrer" className="btn btn-primary h-11">buy on pump.fun</a>
       </div>
     </div>
   );

@@ -152,14 +152,14 @@ export function LaunchForm() {
   if (step === "done" && result) {
     return (
       <div className="card p-8 text-center">
-        <span className="stamp stamp-green">Human-made</span>
-        <h2 className="mt-5 text-3xl">${symbol.toUpperCase()} is live on pump.fun</h2>
-        <p className="mt-2 text-muted">Created by {short(publicKey?.toBase58() ?? "")}. You are the creator and keep every creator reward.</p>
-        <div className="mono mt-6 break-all rounded-xl bg-elev p-3 text-xs text-muted">{result.mint}</div>
+        <span className="stamp stamp-green">human-made</span>
+        <h2 className="mt-5 text-4xl">${symbol.toUpperCase()} is live on pump.fun!!</h2>
+        <p className="mt-2 text-lg text-muted">made by {short(publicKey?.toBase58() ?? "")}. you&apos;re the creator and keep every creator reward.</p>
+        <div className="mono wobbly-2 mt-6 break-all border-[2px] border-dashed border-line bg-elev p-3 text-xs text-muted">{result.mint}</div>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <a href={pumpUrl(result.mint)} target="_blank" rel="noreferrer" className="btn btn-primary">Open on pump.fun</a>
-          <a href={`https://solscan.io/tx/${result.signature}`} target="_blank" rel="noreferrer" className="btn btn-ghost">Creation tx</a>
-          <Link href={`/t/${result.mint}`} className="btn btn-ghost">Coin page</Link>
+          <a href={pumpUrl(result.mint)} target="_blank" rel="noreferrer" className="btn btn-primary">open on pump.fun</a>
+          <a href={`https://solscan.io/tx/${result.signature}`} target="_blank" rel="noreferrer" className="btn btn-ghost">creation tx</a>
+          <Link href={`/t/${result.mint}`} className="btn btn-ghost">coin page</Link>
         </div>
       </div>
     );
@@ -168,14 +168,14 @@ export function LaunchForm() {
   if (!publicKey) {
     return (
       <div className="card p-8 text-center sm:p-12">
-        <span className="pill pill-ink">Wallet required</span>
-        <h2 className="mt-5 text-3xl">Connect a wallet to launch</h2>
-        <p className="mx-auto mt-3 max-w-md text-muted">
-          Coins are created from your own wallet. It pays for the launch, signs the creation transaction, and becomes the coin&apos;s creator on pump.fun.
-          {BRAND} never holds your keys or your funds.
+        <span className="pill pill-ink rotate-[-2deg]">wallet needed</span>
+        <h2 className="mt-5 text-4xl">connect a wallet to launch</h2>
+        <p className="mx-auto mt-3 max-w-md text-lg text-muted">
+          coins get made from your own wallet. it pays for the launch, signs the transaction, and becomes the coin&apos;s creator on pump.fun.
+          {BRAND} never touches your keys or your money.
         </p>
-        <button type="button" onClick={() => setVisible(true)} className="btn btn-primary mt-8 h-12 px-8 text-base">Connect wallet</button>
-        <p className="mt-4 text-xs text-dim">Phantom and Solflare are supported.</p>
+        <button type="button" onClick={() => setVisible(true)} className="btn btn-primary mt-8 h-13 px-8 text-lg">connect wallet</button>
+        <p className="mt-4 text-sm text-dim">phantom and solflare work.</p>
       </div>
     );
   }
@@ -183,19 +183,19 @@ export function LaunchForm() {
   return (
     <form onSubmit={submit} className="pb-32">
       {status && !status.launchEnabled && (
-        <div className="mb-6 rounded-2xl border border-[#ecd3a0] bg-amber-soft p-4 text-sm text-amber">
-          Launching is paused on this server: no AI-image detector is configured. The operator needs to set <span className="mono">ANTHROPIC_API_KEY</span> (or Sightengine keys).
+        <div className="card mb-8 bg-amber-soft p-4 text-amber">
+          launching is paused on this server: no AI-image detector is set up. the operator needs to set <span className="mono">ANTHROPIC_API_KEY</span> (or Sightengine keys).
         </div>
       )}
 
       <div className="card p-6 sm:p-8">
         <div className="grid gap-6 md:grid-cols-[260px_1fr]">
           <div>
-            <label className="label" htmlFor="image">Image</label>
+            <label className="label" htmlFor="image">picture</label>
             <label
               htmlFor="image"
-              className={`relative flex aspect-square cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed bg-elev text-center text-sm text-muted transition hover:border-fg ${
-                check.state === "checking" ? "scan border-green" : check.state === "done" ? (check.verdict.allowed ? "border-green" : "border-rose") : "border-line-strong"
+              className={`wobbly-2 relative flex aspect-square cursor-pointer items-center justify-center overflow-hidden border-[3px] border-dashed bg-elev text-center text-muted transition hover:bg-white ${
+                check.state === "checking" ? "scan border-blue" : check.state === "done" ? (check.verdict.allowed ? "border-green" : "border-rose") : "border-line"
               }`}
             >
               {preview ? (
@@ -203,43 +203,43 @@ export function LaunchForm() {
                 <img src={preview} alt="" className="h-full w-full object-cover" />
               ) : (
                 <span className="px-6">
-                  Click to choose a PNG, JPG, GIF or WebP
+                  click to pick a PNG, JPG, GIF or WebP
                   <br />
-                  <span className="text-xs text-dim">Must be made by a human.</span>
+                  <span className="text-sm text-dim">must be made by a human!!</span>
                 </span>
               )}
               {check.state === "done" && (
-                <span className={`stamp absolute right-3 top-3 bg-card/90 ${check.verdict.allowed ? "stamp-green" : "stamp-rose"}`}>{check.verdict.allowed ? "Human-made" : "AI detected"}</span>
+                <span className={`stamp absolute right-3 top-3 ${check.verdict.allowed ? "stamp-green" : "stamp-rose"}`}>{check.verdict.allowed ? "human-made" : "AI!!"}</span>
               )}
             </label>
             <input id="image" type="file" accept={IMAGE_TYPES.join(",")} className="hidden" disabled={busy} onChange={(e) => pickImage(e.target.files?.[0] ?? null)} />
             <p className="mt-2 text-xs text-muted">
-              {check.state === "checking" ? "Checking the image…" : check.state === "idle" ? "The image is checked the moment you pick it." : null}
+              {check.state === "checking" ? "looking at it…" : check.state === "idle" ? "we check the picture the moment you pick it." : null}
             </p>
           </div>
 
           <div>
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
-                <label className="label" htmlFor="name">Name</label>
-                <input id="name" className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={32} placeholder="Brush Cat" required disabled={busy} />
+                <label className="label" htmlFor="name">name</label>
+                <input id="name" className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={32} placeholder="paint cat" required disabled={busy} />
               </div>
               <div>
-                <label className="label" htmlFor="symbol">Ticker</label>
-                <input id="symbol" className="input uppercase" value={symbol} onChange={(e) => setSymbol(e.target.value.replace(/[^a-z0-9]/gi, "").slice(0, 10))} placeholder="BRUSH" required disabled={busy} />
+                <label className="label" htmlFor="symbol">ticker</label>
+                <input id="symbol" className="input uppercase" value={symbol} onChange={(e) => setSymbol(e.target.value.replace(/[^a-z0-9]/gi, "").slice(0, 10))} placeholder="PAINT" required disabled={busy} />
               </div>
             </div>
             <div className="mt-5">
-              <label className="label" htmlFor="description">Description</label>
-              <textarea id="description" className="input" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} placeholder="What is this coin about?" disabled={busy} />
+              <label className="label" htmlFor="description">description</label>
+              <textarea id="description" className="input" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} placeholder="what is this coin about?" disabled={busy} />
             </div>
             <div className="mt-5">
-              <label className="label" htmlFor="devbuy">Dev buy (SOL)</label>
+              <label className="label" htmlFor="devbuy">dev buy (SOL)</label>
               <input id="devbuy" className="input num" inputMode="decimal" value={devBuy} onChange={(e) => setDevBuy(e.target.value.replace(/[^0-9.]/g, ""))} placeholder="0.1" disabled={busy} />
-              <p className="mt-1.5 text-xs text-muted">Bought in the creation transaction and held by your wallet. 0 is fine. Max {status?.maxDevBuySol ?? 10} SOL.</p>
+              <p className="mt-1.5 text-sm text-muted">bought in the creation transaction, lands in your wallet. 0 is fine. max {status?.maxDevBuySol ?? 10} SOL.</p>
             </div>
             <div className="mt-5">
-              <div className="label">Links (optional)</div>
+              <div className="label">links (optional)</div>
               <div className="grid gap-3 sm:grid-cols-3">
                 <input className="input" value={twitter} onChange={(e) => setTwitter(e.target.value)} placeholder="https://x.com/…" disabled={busy} />
                 <input className="input" value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="https://t.me/…" disabled={busy} />
@@ -250,40 +250,40 @@ export function LaunchForm() {
         </div>
 
         {check.state === "done" && <div className="mt-6"><VerdictCard verdict={check.verdict} /></div>}
-        {check.state === "error" && <div className="mt-6 rounded-2xl bg-rose-soft p-4 text-sm text-rose">{check.message}</div>}
+        {check.state === "error" && <div className="card mt-6 bg-rose-soft p-4 text-rose">{check.message}</div>}
 
-        <div className="mt-6 rounded-2xl bg-elev p-4 text-sm text-muted">
-          <div className="font-semibold text-fg">What happens</div>
+        <div className="card card-yellow mt-8 p-5 text-muted">
+          <div className="font-display text-lg text-fg">what happens</div>
           <p className="mt-1">
-            {BRAND} checks the image with {status ? status.detectors.map((d) => DETECTOR_LABEL[d]).join(", ") : "its detectors"}. If it passes, the metadata is uploaded and you sign one pump.fun
-            creation transaction from your own wallet. Your wallet is the coin&apos;s creator; {BRAND} never holds your funds or your coin.
+            {BRAND} checks the picture with {status ? status.detectors.map((d) => DETECTOR_LABEL[d]).join(", ") : "its detectors"}. if it passes, the metadata gets uploaded and you sign one pump.fun
+            creation transaction from your own wallet. your wallet is the coin&apos;s creator. {BRAND} never holds your money or your coin.
           </p>
         </div>
       </div>
 
-      {error && <div className="mt-4 rounded-2xl bg-rose-soft p-4 text-sm text-rose">{error}</div>}
+      {error && <div className="card mt-6 bg-rose-soft p-4 text-rose">{error}</div>}
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-card/95 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t-[3px] border-line bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-8">
-          <dl className="num flex flex-wrap gap-x-8 gap-y-1 text-sm">
-            <Row k="Dev buy" v={fmtSol(devBuyNum * 1e9)} />
-            <Row k="Creation (est.)" v={fmtSol(CREATION_LAMPORTS + (status?.priorityFeeSol ?? 0.0005) * 1e9)} />
-            <Row k="Image" v={check.state === "done" ? (check.verdict.allowed ? "passed" : "blocked") : check.state === "checking" ? "checking…" : "—"} strong />
+          <dl className="num flex flex-wrap gap-x-8 gap-y-1">
+            <Row k="dev buy" v={fmtSol(devBuyNum * 1e9)} />
+            <Row k="creation (est.)" v={fmtSol(CREATION_LAMPORTS + (status?.priorityFeeSol ?? 0.0005) * 1e9)} />
+            <Row k="picture" v={check.state === "done" ? (check.verdict.allowed ? "passed ✓" : "blocked ✗") : check.state === "checking" ? "checking…" : "—"} strong />
           </dl>
           <div className="flex items-center gap-4">
-            <span className="hidden text-xs text-muted sm:block">
-              Signed by {short(publicKey.toBase58())}. <Link href="/docs" className="underline">Details</Link>
+            <span className="hidden text-sm text-muted sm:block">
+              signed by {short(publicKey.toBase58())}. <Link href="/docs" className="underline">details</Link>
             </span>
-            <button type="submit" className="btn btn-primary h-12 px-7 text-base" disabled={!canSubmit}>
+            <button type="submit" className="btn btn-primary h-13 px-7 text-lg" disabled={!canSubmit}>
               {step === "preparing"
-                  ? "Verifying & preparing…"
+                  ? "checking & preparing…"
                   : step === "signing"
-                    ? "Confirm in wallet…"
+                    ? "confirm in wallet…"
                     : step === "confirming"
-                      ? "Confirming on chain…"
+                      ? "confirming on chain…"
                       : check.state === "done" && !check.verdict.allowed
-                        ? "Image rejected"
-                        : "Deploy on pump.fun"}
+                        ? "picture rejected"
+                        : "deploy on pump.fun"}
             </button>
           </div>
         </div>
@@ -296,7 +296,7 @@ function Row({ k, v, strong }: { k: string; v: string; strong?: boolean }) {
   return (
     <div className="flex gap-2">
       <dt className="text-muted">{k}</dt>
-      <dd className={strong ? "font-bold" : ""}>{v}</dd>
+      <dd className={strong ? "font-display" : ""}>{v}</dd>
     </div>
   );
 }

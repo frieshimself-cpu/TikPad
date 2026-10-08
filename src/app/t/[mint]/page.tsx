@@ -15,12 +15,12 @@ export default async function TokenPage({ params }: PageProps<"/t/[mint]">) {
   if (!token) {
     return (
       <div className="mx-auto max-w-3xl px-5 py-16 text-center sm:px-8">
-        <h1 className="text-3xl">Not launched here</h1>
-        <p className="mt-3 text-muted">No record of this mint on {BRAND}. It may have been launched elsewhere, or this server has no database.</p>
+        <h1 className="text-4xl">not launched here</h1>
+        <p className="mt-3 text-lg text-muted">no record of this mint on {BRAND}. maybe it was launched somewhere else, or this server has no database.</p>
         <div className="mono mt-4 break-all text-xs text-dim">{mint}</div>
         <div className="mt-6 flex justify-center gap-3">
-          <a href={pumpUrl(mint)} target="_blank" rel="noreferrer" className="btn btn-primary">Open on pump.fun</a>
-          <Link href="/launch" className="btn btn-ghost">Launch a coin</Link>
+          <a href={pumpUrl(mint)} target="_blank" rel="noreferrer" className="btn btn-primary">open on pump.fun</a>
+          <Link href="/launch" className="btn btn-ghost">launch a coin</Link>
         </div>
       </div>
     );
@@ -43,24 +43,24 @@ export default async function TokenPage({ params }: PageProps<"/t/[mint]">) {
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-3xl sm:text-4xl">{token.name}</h1>
               <span className="num text-lg text-muted">${token.symbol}</span>
-              <span className="stamp stamp-green">Human-made</span>
+              <span className="stamp stamp-green">human-made</span>
             </div>
             <div className="num mt-2 text-sm text-muted">
-              Launched by {short(token.launcher_wallet)} · {new Date(token.created_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
+              launched by {short(token.launcher_wallet)} · {new Date(token.created_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
               {token.dev_buy_lamports > 0 ? ` · dev buy ${fmtSol(token.dev_buy_lamports)}` : ""}
             </div>
           </div>
         </div>
         {token.description && <p className="mt-6 whitespace-pre-wrap leading-relaxed text-muted">{token.description}</p>}
-        <div className="mono mt-6 break-all rounded-xl bg-elev p-3 text-xs text-muted">{token.mint}</div>
+        <div className="mono wobbly-2 mt-6 break-all border-[2px] border-dashed border-line bg-elev p-3 text-xs text-muted">{token.mint}</div>
         <div className="mt-6 flex flex-wrap gap-3">
-          <a href={pumpUrl(token.mint)} target="_blank" rel="noreferrer" className="btn btn-primary">Trade on pump.fun</a>
-          <a href={`https://solscan.io/tx/${token.create_sig}`} target="_blank" rel="noreferrer" className="btn btn-ghost">Creation tx</a>
+          <a href={pumpUrl(token.mint)} target="_blank" rel="noreferrer" className="btn btn-primary">trade on pump.fun</a>
+          <a href={`https://solscan.io/tx/${token.create_sig}`} target="_blank" rel="noreferrer" className="btn btn-ghost">creation tx</a>
         </div>
       </div>
       {verdict && (
         <div className="mt-6">
-          <div className="eyebrow mb-3">Image check at launch</div>
+          <div className="eyebrow mb-3">picture check at launch</div>
           <VerdictCard verdict={verdict} compact />
         </div>
       )}
