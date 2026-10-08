@@ -1,11 +1,9 @@
 /** Brand constants (plain module: safe to import from server and client components). */
-export const BRAND = "RealPad";
+export const BRAND = "Anti AI Launchpad";
+export const BRAND_SHORT = "AAL";
 export const TAGLINE = "Launch on pump.fun. No AI images.";
 
-/** The RealPad token contract address on pump.fun. */
-export const TOKEN_CA = "73MjDdkS3BQXkGUhLaYbZCdr45AvTtNBfDkXCGpjpump";
-export const TOKEN_SYMBOL = "REAL";
-export const TOKEN_PUMP_URL = `https://pump.fun/coin/${TOKEN_CA}`;
+export const TOKEN_SYMBOL = "AAL";
 
 export const pumpUrl = (mint: string) => `https://pump.fun/coin/${mint}`;
 

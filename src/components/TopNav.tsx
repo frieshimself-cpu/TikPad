@@ -4,10 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
 import { WalletButton } from "./WalletButton";
-import { BRAND, TOKEN_PUMP_URL, TOKEN_SYMBOL } from "@/lib/brand";
+import { BRAND } from "@/lib/brand";
 
 const LINKS = [
   ["/launch", "launch a coin"],
+  ["/coins", "coins that passed"],
   ["/docs", "how it works"],
 ] as const;
 
@@ -23,9 +24,6 @@ export function TopNav() {
               {label}
             </Link>
           ))}
-          <a href={TOKEN_PUMP_URL} target="_blank" rel="noreferrer" className="font-display rounded-md px-3 py-1 text-[1.05rem] hover:scribble">
-            ${TOKEN_SYMBOL} →
-          </a>
         </nav>
         <div className="flex items-center gap-2">
           <Link href="/launch" className="btn btn-primary h-10 sm:hidden">launch</Link>

@@ -1,8 +1,8 @@
-# RealPad
+# Anti AI Launchpad ($AAL)
 
-**Launch on pump.fun. No AI images.**
+**Launch on pump.fun. No AI slop.**
 
-RealPad is a pump.fun launchpad with one rule: the coin's image has to be made by a human. You fill in name, ticker, description, links, an image and a dev buy, RealPad checks the image, and if it passes you sign one creation transaction from your own wallet. Your wallet is the coin's on-chain creator and keeps every creator reward. If the image is AI-generated, it never deploys.
+Anti AI Launchpad is a pump.fun launchpad with one rule: the coin's image has to be made by a human. You fill in name, ticker, description, links, an image and a dev buy, Anti AI Launchpad checks the image, and if it passes you sign one creation transaction from your own wallet. Your wallet is the coin's on-chain creator and keeps every creator reward. If the image is AI-generated, it never deploys.
 
 ## How the gate works
 

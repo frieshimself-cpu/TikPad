@@ -3,7 +3,7 @@ import { gateTotals, listTokens } from "@/lib/server/db";
 
 export const dynamic = "force-dynamic";
 
-/** Coins launched through RealPad and the gate's running totals. */
+/** Coins launched through Anti AI Launchpad and the gate's running totals. */
 export async function GET() {
   try {
     const [tokens, gate] = await Promise.all([listTokens(100), gateTotals()]);

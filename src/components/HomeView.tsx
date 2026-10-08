@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { HeroArt } from "./HeroArt";
-import { ContractAddress } from "./ContractAddress";
 import { RecentLaunches, useLaunches } from "./RecentLaunches";
 import { BRAND } from "@/lib/brand";
 
@@ -32,18 +31,16 @@ export function HomeView() {
             <h1 className="mt-6 max-w-2xl pb-3 text-5xl sm:text-6xl lg:text-7xl">
               launch a coin.
               <br />
-              <span className="scribble">no AI pictures.</span>
+              <span className="scribble">no AI slop.</span>
             </h1>
             <p className="mt-5 max-w-xl text-xl leading-relaxed text-muted">
               pick a name, a picture and a dev buy, deploy to pump.fun from your own wallet. one rule: a human has to have made the picture.
-              if it&apos;s AI, {BRAND} won&apos;t let it deploy. yes we drew the logo ourselves. in paint. you can tell.
+              if it&apos;s AI, it doesn&apos;t deploy. we want authentic projects in the trenches, not slop. yes we drew the logo ourselves. in paint.
+              you can tell.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link href="/launch" className="btn btn-primary h-13 px-7 text-lg">launch a coin</Link>
-              <Link href="/docs" className="btn btn-ghost h-13 px-7 text-lg">how does it check?</Link>
-            </div>
-            <div className="mt-10 max-w-xl">
-              <ContractAddress />
+              <Link href="/coins" className="btn btn-ghost h-13 px-7 text-lg">coins that passed</Link>
             </div>
           </div>
           <div className="hidden lg:block">
@@ -68,11 +65,47 @@ export function HomeView() {
         </div>
       </section>
 
+      <section className="px-5 pt-16 sm:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="card card-yellow tilt-l p-8 sm:p-12">
+            <div className="eyebrow">why this exists</div>
+            <h2 className="mt-1 text-4xl sm:text-5xl">no slop in the trenches.</h2>
+            <div className="mt-6 grid gap-8 text-lg leading-relaxed text-muted lg:grid-cols-2">
+              <div className="space-y-4">
+                <p>
+                  the trenches are full of it. someone types &quot;cute dog coin logo&quot; into midjourney, pastes the first result, deploys, and it&apos;s gone in
+                  twenty minutes. a thousand of those a day. nobody made anything. nobody cared. it&apos;s just noise with a ticker.
+                </p>
+                <p>
+                  we think the coins that actually last are the ones where someone <span className="highlight">actually did something</span>. drew the thing.
+                  took the photo. built the character. even if it&apos;s ugly. especially if it&apos;s ugly. look at our logo.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <p>
+                  so {BRAND} has one rule and it&apos;s not negotiable: the picture has to be made by a human. the gate looks at every picture before anything
+                  touches the chain. if it&apos;s AI, it doesn&apos;t deploy. no exceptions, no &quot;but it&apos;s just the logo&quot;.
+                </p>
+                <p>
+                  what you get on the other side is a list of coins where you know at least one real person put in real effort. authentic projects,
+                  not slop. that&apos;s the whole pitch.
+                </p>
+              </div>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              {["no AI pictures", "no slop", "real people", "real effort", "ugly is fine"].map((t, i) => (
+                <span key={t} className={`pill ${i % 2 ? "pill-rose rotate-[2deg]" : "pill-green rotate-[-2deg]"}`}>{t}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="px-5 py-16 sm:px-8">
         <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1fr_400px]">
           <div>
-            <div className="eyebrow">recent</div>
-            <h2 className="mt-1 text-4xl">coins that passed</h2>
+            <div className="eyebrow">deployed through here</div>
+            <h2 className="mt-1 text-4xl">latest coins that passed</h2>
             <div className="mt-6"><RecentLaunches /></div>
           </div>
           <div>

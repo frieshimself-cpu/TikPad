@@ -11,6 +11,10 @@ export default function DocsPage() {
         {BRAND} is a pump.fun launchpad with one rule: a human has to have made the coin&apos;s picture. everything else is exactly what you&apos;d do on
         pump.fun, from your own wallet.
       </p>
+      <p className="mt-3 text-xl text-muted">
+        why? because the trenches are drowning in slop. AI logo, zero effort, dead in an hour. we want the opposite: authentic projects where a real person
+        made a real thing. the gate is how we keep it that way.
+      </p>
 
       <Section title="1. launching" tilt="tilt-l">
         <p>

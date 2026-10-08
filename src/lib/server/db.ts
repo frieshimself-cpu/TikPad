@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS metadata (
 `;
 
 declare global {
-  var __realpadDb: Promise<Client> | undefined;
+  var __aalDb: Promise<Client> | undefined;
 }
 
 export function dbUrl(): string | null {
@@ -75,8 +75,8 @@ export function dbUrl(): string | null {
 export const dbAvailable = () => dbUrl() !== null;
 
 export function db(): Promise<Client> {
-  if (globalThis.__realpadDb) return globalThis.__realpadDb;
-  globalThis.__realpadDb = (async () => {
+  if (globalThis.__aalDb) return globalThis.__aalDb;
+  globalThis.__aalDb = (async () => {
     const u = dbUrl();
     if (!u) throw new Error("No database configured (set TURSO_DATABASE_URL).");
     let c: Client;
@@ -93,7 +93,7 @@ export function db(): Promise<Client> {
     await c.executeMultiple(SCHEMA);
     return c;
   })();
-  return globalThis.__realpadDb;
+  return globalThis.__aalDb;
 }
 
 async function all<T>(sql: string, args: InArgs = []): Promise<T[]> {

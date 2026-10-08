@@ -29,7 +29,7 @@ export const serverConfig = {
   /* database (optional) */
   tursoUrl: process.env.TURSO_DATABASE_URL ?? "",
   tursoAuthToken: process.env.TURSO_AUTH_TOKEN ?? "",
-  dbPath: process.env.DATABASE_PATH ?? "./data/realpad.db",
+  dbPath: process.env.DATABASE_PATH ?? "./data/aal.db",
 
   /* launch parameters passed to PumpPortal */
   priorityFeeSol: num(process.env.PRIORITY_FEE_SOL, 0.0005),

@@ -7,15 +7,15 @@ import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { serverConfig } from "./config";
 
 declare global {
-  var __realpadSecret: Buffer | undefined;
+  var __aalSecret: Buffer | undefined;
 }
 
 function secret(): Buffer {
-  if (serverConfig.appSecret) return Buffer.from("realpad:" + serverConfig.appSecret);
+  if (serverConfig.appSecret) return Buffer.from("aal:" + serverConfig.appSecret);
   // No APP_SECRET: a per-process secret. Tokens then only survive on the same warm instance,
   // which is fine because a failed verification just means running the detectors again.
-  if (!globalThis.__realpadSecret) globalThis.__realpadSecret = randomBytes(32);
-  return globalThis.__realpadSecret;
+  if (!globalThis.__aalSecret) globalThis.__aalSecret = randomBytes(32);
+  return globalThis.__aalSecret;
 }
 
 export function signToken<T extends object>(payload: T): string {
