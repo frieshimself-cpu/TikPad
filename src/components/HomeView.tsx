@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { HeroArt } from "./HeroArt";
-import { ContractAddress } from "./ContractAddress";
 import { RecentLaunches, useLaunches } from "./RecentLaunches";
 import { BRAND } from "@/lib/brand";
 
@@ -42,9 +41,6 @@ export function HomeView() {
             <div className="mt-8 flex flex-wrap gap-4">
               <Link href="/launch" className="btn btn-primary h-13 px-7 text-lg">launch a coin</Link>
               <Link href="/coins" className="btn btn-ghost h-13 px-7 text-lg">coins that passed</Link>
-            </div>
-            <div className="mt-10 max-w-xl">
-              <ContractAddress />
             </div>
           </div>
           <div className="hidden lg:block">
