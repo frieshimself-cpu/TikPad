@@ -24,7 +24,7 @@ npm install
 npm run dev
 ```
 
-Deploys to Vercel as is. Set `ANTHROPIC_API_KEY` in the project's environment variables; `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` are optional and only make the "launched here" list persist.
+Deploys to Vercel as is. Set `ANTHROPIC_API_KEY` in the project's environment variables (Settings → Environment Variables, Production) and redeploy, since variables only apply to new builds; `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` are optional and only make the "launched here" list persist.
 
 ## Layout
 
